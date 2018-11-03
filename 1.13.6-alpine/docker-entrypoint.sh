@@ -5,7 +5,7 @@ export NGINX_PHP_READ_TIMEOUT=${NGINX_PHP_READ_TIMEOUT:-900}
 export NGINX_DEFAULT_SERVER_NAME=${NGINX_DEFAULT_SERVER_NAME:-drupal}
 export NGINX_DEFAULT_ROOT=${NGINX_DEFAULT_ROOT:-/var/www/html}
 export NGINX_HTTPSREDIRECT=${NGINX_HTTPSREDIRECT:-0}
-export NGINX_SUBFOLDER=${NGINX_SUBFOLDER_ROOT:-0}
+export NGINX_SUBFOLDER=${NGINX_SUBFOLDER:-0}
 if [ $NGINX_HTTPSREDIRECT == 1 ]; then
   sed  -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/default.conf;
 fi
