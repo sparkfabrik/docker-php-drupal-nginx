@@ -8,6 +8,7 @@ export NGINX_HTTPSREDIRECT=${NGINX_HTTPSREDIRECT:-0}
 export NGINX_SUBFOLDER=${NGINX_SUBFOLDER:-0}
 if [ $NGINX_HTTPSREDIRECT == 1 ]; then
   sed  -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/default.conf;
+  sed  -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/subfolder.conf;
 fi
 envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
 if [ $NGINX_SUBFOLDER != 0 ]; then
