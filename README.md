@@ -15,3 +15,4 @@ The entrypoint file contains a list of environment variables that will be replac
 * `NGINX_SUBFOLDER_ESCAPED`: (default: `0`)
 * `NGINX_OSB_BUCKET`: needed when using drupal+s3fs, contains the remote bucket url to proxy aggregated ccs/js relative urls
 * `NGINX_OSB_RESOLVER`: needed when using drupal+s3fs, contains the host resolver that nginx uses to resolve the remote bucket url (default: `8.8.8.8`)
+* `DRUPAL_PUBLIC_FILES_PATH`: the path for Drupal's public files (default: `sites/default/files`)
