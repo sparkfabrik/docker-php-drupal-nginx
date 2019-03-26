@@ -10,6 +10,7 @@ export NGINX_SUBFOLDER_ESCAPED=$(echo ${NGINX_SUBFOLDER} | sed 's/\//\\\//g')
 export NGINX_OSB_BUCKET=${NGINX_OSB_BUCKET}
 export NGINX_OSB_RESOLVER=${NGINX_OSB_RESOLVER:-8.8.8.8}
 export DRUPAL_PUBLIC_FILES_PATH=${DRUPAL_PUBLIC_FILES_PATH:-sites/default/files}
+export NGINX_CACHE_CONTROL_HEADER=${NGINX_CACHE_CONTROL_HEADER:-public,max-age=3600}
 if [ $NGINX_HTTPSREDIRECT == 1 ]; then
   sed  -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/default.conf;
   sed  -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/subfolder.conf;
@@ -23,7 +24,7 @@ fi
 for filename in /etc/nginx/conf.d/fragments/*.conf; do
   if [ -e "${filename}" ] ; then
     cp ${filename} ${filename}.tmp
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH}' < $filename.tmp > $filename
+    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER}' < $filename.tmp > $filename
     rm ${filename}.tmp
   fi  
 done
