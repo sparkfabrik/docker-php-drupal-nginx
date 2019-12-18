@@ -20,8 +20,17 @@ if [ $NGINX_SUBFOLDER != 0 ]; then
   envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED}' < /templates/subfolder.conf > /etc/nginx/conf.d/default.conf
 fi
 
-# Rewrite fragments.
+# Rewrite main server fragments.
 for filename in /etc/nginx/conf.d/fragments/*.conf; do
+  if [ -e "${filename}" ] ; then
+    cp ${filename} ${filename}.tmp
+    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER}' < $filename.tmp > $filename
+    rm ${filename}.tmp
+  fi
+done
+
+# Rewrite custom server fragments.
+for filename in /etc/nginx/conf.d/custom/*.conf; do
   if [ -e "${filename}" ] ; then
     cp ${filename} ${filename}.tmp
     envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER}' < $filename.tmp > $filename
