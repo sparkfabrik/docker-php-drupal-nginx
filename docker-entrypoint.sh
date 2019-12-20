@@ -38,8 +38,5 @@ for filename in /etc/nginx/conf.d/custom/*.conf; do
   fi
 done
 
-# Attempt to create the redirects files if not present.
-touch /etc/nginx/conf.d/redirects.map
-
 envsubst '${NGINX_PHP_READ_TIMEOUT}' < /templates/fastcgi.conf > /etc/nginx/fastcgi.conf
 exec nginx -g "daemon off;"
