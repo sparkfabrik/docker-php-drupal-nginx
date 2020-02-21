@@ -8,7 +8,7 @@ specific configuration for Drupal 8.
 NGINX is configured dynamically by generating a `default.conf file.
 
 ```
-envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
+envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
 ```
 
 If you want customize the default configuration file, just override the file `/templates/default.conf`.
@@ -62,6 +62,7 @@ The entrypoint file contains a list of environment variables that will be replac
 * `NGINX_DEFAULT_SERVER_NAME`: the server name (default: `_`)
 * `NGINX_DEFAULT_ROOT`: the server root (default: `/var/www/html`)
 * `NGINX_HTTPSREDIRECT`: enable/disable https redirect (default: `0`)
+* `DECLARE_DEFAULT_SERVER`: if set to 1, we will explicitly declare the default.conf server declaration as the default_server.
 * `NGINX_SUBFOLDER`: include nginx configuration files from subfolders (default: `0`)
 * `NGINX_SUBFOLDER_ESCAPED`: (default: `0`)
 * `NGINX_OSB_BUCKET`: needed when using drupal+s3fs, contains the remote bucket url to proxy aggregated ccs/js relative urls

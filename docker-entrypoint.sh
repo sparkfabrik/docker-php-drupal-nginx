@@ -5,12 +5,12 @@ export PHP_PORT=${PHP_PORT:-9000}
 export NGINX_PHP_READ_TIMEOUT=${NGINX_PHP_READ_TIMEOUT:-900}
 # As default we have an "_" as server name.
 export NGINX_DEFAULT_SERVER_NAME=${NGINX_DEFAULT_SERVER_NAME:-_}
-# If you want to disable a default catch-all server,
-# set the env var DISABLE_DEFAULT_SERVER to 1.
-if [ DISABLE_DEFAULT_SERVER == 1 ]; then
-  export DEFAULT_SERVER=""
-else
+# If you want to declare the default.conf server as the default
+# catch-all server, set the env var DECLARE_DEFAULT_SERVER to 1.
+if [ $DECLARE_DEFAULT_SERVER == 1 ]; then
   export DEFAULT_SERVER="default_server"
+else
+  export DEFAULT_SERVER=""
 fi
 export NGINX_DEFAULT_ROOT=${NGINX_DEFAULT_ROOT:-/var/www/html}
 export NGINX_HTTPSREDIRECT=${NGINX_HTTPSREDIRECT:-0}
