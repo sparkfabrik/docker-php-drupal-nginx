@@ -17,11 +17,11 @@ There is just one `server` configuration, which acts basically like a placeholde
 by mounting extra configurations under `/etc/nginx/conf.d/fragments`, the files are then parsed by
 substituting the env variables with the actual values.
 
-Here you can find some reference documentation to fine tune Nginx and Drupal:
+Here you can find some reference documentation to fine tune Nginx:
 
 * https://www.nginx.com/resources/wiki/start/topics/recipes/drupal/
 * https://www.nginx.com/resources/wiki/start/topics/examples/phpfcgi/
-
+* http://nginx.org/en/docs/http/server_names.html#optimization
 
 ### Default server custom configurations fragments
 
@@ -62,7 +62,6 @@ The entrypoint file contains a list of environment variables that will be replac
 * `NGINX_DEFAULT_SERVER_NAME`: the server name (default: `_`)
 * `NGINX_DEFAULT_ROOT`: the server root (default: `/var/www/html`)
 * `NGINX_HTTPSREDIRECT`: enable/disable https redirect (default: `0`)
-* `DECLARE_DEFAULT_SERVER`: if set to 1, we will explicitly declare the default.conf server declaration as the default_server.
 * `NGINX_SUBFOLDER`: include nginx configuration files from subfolders (default: `0`)
 * `NGINX_SUBFOLDER_ESCAPED`: (default: `0`)
 * `NGINX_OSB_BUCKET`: needed when using drupal+s3fs, contains the remote bucket url to proxy aggregated ccs/js relative urls

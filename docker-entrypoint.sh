@@ -3,14 +3,18 @@ set -e
 export PHP_HOST=${PHP_HOST:-php}
 export PHP_PORT=${PHP_PORT:-9000}
 export NGINX_PHP_READ_TIMEOUT=${NGINX_PHP_READ_TIMEOUT:-900}
-# As default we have an "_" as server name.
+# If the variable NGINX_DEFAULT_SERVER_NAME is left empty
+# (in this case the default value _ will be used), the default.conf
+# server declaration will be declared as the default catch all server.
+# Otherwise the default.conf server declaration will respond only
+# to name servers defined in the NGINX_DEFAULT_SERVER_NAME env var
+# and a catch all server retunrning 444 will be added.
 export NGINX_DEFAULT_SERVER_NAME=${NGINX_DEFAULT_SERVER_NAME:-_}
-# If you want to declare the default.conf server as the default
-# catch-all server, set the env var DECLARE_DEFAULT_SERVER to 1.
-if [ $DECLARE_DEFAULT_SERVER == 1 ]; then
+if [ $NGINX_DEFAULT_SERVER_NAME == "_" ]; then
   export DEFAULT_SERVER="default_server"
 else
   export DEFAULT_SERVER=""
+  cp /templates/catch-all-server.conf /etc/nginx/conf.d/catch-all-server.conf
 fi
 export NGINX_DEFAULT_ROOT=${NGINX_DEFAULT_ROOT:-/var/www/html}
 export NGINX_HTTPSREDIRECT=${NGINX_HTTPSREDIRECT:-0}
