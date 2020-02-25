@@ -3,7 +3,19 @@ set -e
 export PHP_HOST=${PHP_HOST:-php}
 export PHP_PORT=${PHP_PORT:-9000}
 export NGINX_PHP_READ_TIMEOUT=${NGINX_PHP_READ_TIMEOUT:-900}
-export NGINX_DEFAULT_SERVER_NAME=${NGINX_DEFAULT_SERVER_NAME:-drupal}
+# If the variable NGINX_DEFAULT_SERVER_NAME is left empty
+# (in this case the default value _ will be used), the default.conf
+# server declaration will be declared as the default catch all server.
+# Otherwise the default.conf server declaration will respond only
+# to name servers defined in the NGINX_DEFAULT_SERVER_NAME env var
+# and a catch all server retunrning 444 will be added.
+export NGINX_DEFAULT_SERVER_NAME=${NGINX_DEFAULT_SERVER_NAME:-_}
+if [ $NGINX_DEFAULT_SERVER_NAME == "_" ]; then
+  export DEFAULT_SERVER="default_server"
+else
+  export DEFAULT_SERVER=""
+  cp /templates/catch-all-server.conf /etc/nginx/conf.d/catch-all-server.conf
+fi
 export NGINX_DEFAULT_ROOT=${NGINX_DEFAULT_ROOT:-/var/www/html}
 export NGINX_HTTPSREDIRECT=${NGINX_HTTPSREDIRECT:-0}
 export NGINX_SUBFOLDER=${NGINX_SUBFOLDER:-0}
@@ -20,7 +32,7 @@ fi
 if [ ${NGINX_GZIP_ENABLE} == 1 ]; then
   cp /templates/gzip.conf /etc/nginx/conf.d/gzip.conf
 fi
-envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
+envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
 if [ ${NGINX_SUBFOLDER} != 0 ]; then
   envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED}' < /templates/subfolder.conf > /etc/nginx/conf.d/default.conf
 fi
