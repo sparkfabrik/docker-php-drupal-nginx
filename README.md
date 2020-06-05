@@ -68,3 +68,5 @@ The entrypoint file contains a list of environment variables that will be replac
 * `NGINX_OSB_RESOLVER`: needed when using drupal+s3fs, contains the host resolver that nginx uses to resolve the remote bucket url (default: `8.8.8.8`)
 * `DRUPAL_PUBLIC_FILES_PATH`: the path for Drupal's public files (default: `sites/default/files`)
 * `NGINX_CACHE_CONTROL_HEADER`: caching policy for public files (default: `public,max-age=3600`)
+* `NGINX_GZIP_ENABLE`: enable the gzip compression (default: `1`)
+* `SITEMAP_BASEURL`: the absolute URL of the website sitemap that should be written on *robots.txt* file for SEO purposes (no default provided, the directive is added to the *robots.txt* only when the variable exists)
