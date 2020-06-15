@@ -37,8 +37,11 @@ envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_R
 if [ ${NGINX_SUBFOLDER} != 0 ]; then
   envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED}' < /templates/subfolder.conf > /etc/nginx/conf.d/default.conf
 fi
-if [ -n ${SITEMAP_BASEURL} ] && [ -w "${NGINX_DEFAULT_ROOT}/robots.txt" ] && [ ! grep -wq 'Sitemap:' "${NGINX_DEFAULT_ROOT}/robots.txt" ]; then
-  printf "\nSitemap: %s\n" ${SITEMAP_BASEURL} >> "${NGINX_DEFAULT_ROOT}/robots.txt"
+if [ -n "${SITEMAP_BASEURL}" ] && [ -w "${NGINX_DEFAULT_ROOT}/robots.txt" ] ; then
+  SITEMAP="$(grep -ic 'Sitemap' ${NGINX_DEFAULT_ROOT}/robots.txt)";
+  if [ "$SITEMAP" = 0 ] ; then
+    printf "\nSitemap: %s\n" ${SITEMAP_BASEURL} >> "${NGINX_DEFAULT_ROOT}/robots.txt";
+  fi
 fi
 
 # Rewrite main server fragments.
