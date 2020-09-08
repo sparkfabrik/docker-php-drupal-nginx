@@ -25,7 +25,7 @@ export NGINX_OSB_RESOLVER=${NGINX_OSB_RESOLVER:-8.8.8.8}
 export DRUPAL_PUBLIC_FILES_PATH=${DRUPAL_PUBLIC_FILES_PATH:-sites/default/files}
 export NGINX_CACHE_CONTROL_HEADER=${NGINX_CACHE_CONTROL_HEADER:-public,max-age=3600}
 export NGINX_GZIP_ENABLE=${NGINX_GZIP_ENABLE:-1}
-export SITEMAP_BASEURL=${SITEMAP_BASEURL}
+export SITEMAP_URL=${SITEMAP_URL}
 if [ ${NGINX_HTTPSREDIRECT} == 1 ]; then
   sed  -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/default.conf;
   sed  -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/subfolder.conf;
@@ -40,10 +40,10 @@ fi
 
 # Handle robots.txt and sitemap directive
 ROBOTS_PATH=${NGINX_DEFAULT_ROOT}/robots.txt
-if [ -n "${SITEMAP_BASEURL}" ] && [ -w "${ROBOTS_PATH}" ] ; then
+if [ -n "${SITEMAP_URL}" ] && [ -w "${ROBOTS_PATH}" ] ; then
 	sed '/^Sitemap\:/d' ${ROBOTS_PATH} > ${ROBOTS_PATH}.sed; \
 		mv ${ROBOTS_PATH}.sed ${ROBOTS_PATH}
-	echo "Sitemap: ${SITEMAP_BASEURL}" >> "${NGINX_DEFAULT_ROOT}/robots.txt"
+	echo "Sitemap: ${SITEMAP_URL}" >> "${NGINX_DEFAULT_ROOT}/robots.txt"
 fi
 
 # Rewrite main server fragments.
