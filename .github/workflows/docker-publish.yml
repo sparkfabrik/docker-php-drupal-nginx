@@ -27,8 +27,9 @@ jobs:
         run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build images
-        run: docker build . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13
-        run: docker build . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17
+        run: |
+          docker build . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13
+          docker build . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17
 
       - name: Push images to GitHub Container Registry
         run: |
