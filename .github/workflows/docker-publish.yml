@@ -1,0 +1,44 @@
+name: Docker
+
+on:
+  push:
+    # Publish `master` as Docker `latest` image.
+    branches:
+      - feature/d8
+
+env:
+  IMAGE_NAME: docker-php-drupal-nginx
+  DOCKERFILE_1_13: Dockerfile-1.13.6-alpine
+  DOCKERFILE_1_17: Dockerfile-1.17.6-alpine
+  TAG_1_13: 1.13.6-alpine.d8
+  TAG_1_17: 1.17.6-alpine.d8
+  TAG_D8: d8
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Log into GitHub Container Registry
+        run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build images
+        run: |
+          docker build . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13
+          docker build . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17
+
+      - name: Push images to GitHub Container Registry
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+          # Change all uppercase to lowercase.
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo IMAGE_ID=$IMAGE_ID
+          docker tag $IMAGE_NAME:$TAG_1_13 $IMAGE_ID:$TAG_1_13
+          docker tag $IMAGE_NAME:$TAG_1_13 $IMAGE_ID:$TAG_D8
+          docker tag $IMAGE_NAME:$TAG_1_17 $IMAGE_ID:$TAG_1_17
+          docker push $IMAGE_ID:$TAG_1_13
+          docker push $IMAGE_ID:$TAG_D8
+          docker push $IMAGE_ID:$TAG_1_17
