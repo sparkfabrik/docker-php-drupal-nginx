@@ -5,7 +5,6 @@ on:
     # Publish `master` as Docker `latest` image.
     branches:
       - master
-      - feature/push-to-ghcr-io-d7
 
 env:
   IMAGE_NAME: docker-php-drupal-nginx
