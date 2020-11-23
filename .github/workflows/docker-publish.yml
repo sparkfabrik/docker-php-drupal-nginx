@@ -9,7 +9,7 @@ on:
 
 env:
   IMAGE_NAME: docker-php-drupal-nginx
-  DOCKERFILE: 1.13.6-alpine/Dockerfile
+  DOCKERDIR: 1.13.6-alpine
   TAG_1_13: 1.13.6-alpine
   TAG_D7: 1.17.6-alpine.d7
 
@@ -25,7 +25,7 @@ jobs:
         run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build image
-        run: docker build . --file $DOCKERFILE --tag $IMAGE_NAME
+        run: docker build $DOCKERDIR --tag $IMAGE_NAME
 
       - name: Push images to GitHub Container Registry
         run: |
