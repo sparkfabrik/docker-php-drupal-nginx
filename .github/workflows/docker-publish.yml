@@ -11,7 +11,7 @@ env:
   IMAGE_NAME: docker-php-drupal-nginx
   DOCKERDIR: 1.13.6-alpine
   TAG_1_13: 1.13.6-alpine
-  TAG_D7: 1.17.6-alpine.d7
+  TAG_D7: 1.13.6-alpine.d7
 
 jobs:
   push:
