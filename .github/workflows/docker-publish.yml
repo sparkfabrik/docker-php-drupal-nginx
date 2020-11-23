@@ -1,0 +1,39 @@
+name: Docker
+
+on:
+  push:
+    # Publish `master` as Docker `latest` image.
+    branches:
+      - master
+      - feature/push-to-ghcr-io-d7
+
+env:
+  IMAGE_NAME: docker-php-drupal-nginx
+  DOCKERFILE: 1.13.6-alpine/Dockerfile
+  TAG_1_13: 1.13.6-alpine
+  TAG_D7: 1.17.6-alpine.d7
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Log into GitHub Container Registry
+        run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build image
+        run: docker build . --file $DOCKERFILE --tag $IMAGE_NAME
+
+      - name: Push images to GitHub Container Registry
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+          # Change all uppercase to lowercase.
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo IMAGE_ID=$IMAGE_ID
+          docker tag $IMAGE_NAME $IMAGE_ID:$TAG_1_13
+          docker tag $IMAGE_NAME $IMAGE_ID:$TAG_D7
+          docker push $IMAGE_ID:$TAG_1_13
+          docker push $IMAGE_ID:$TAG_D7
