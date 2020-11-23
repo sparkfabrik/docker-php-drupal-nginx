@@ -1,6 +1,6 @@
 FROM nginx:1.13.6-alpine
 
-LABEL org.opencontainers.image.source https://github.com/sparkfabrik/docker-php-drupal-nginx
+LABEL org.opencontainers.image.source https://github.com/sparkfabrik/docker-php-drupal-nginx/tree/master
 
 COPY templates /templates
 
