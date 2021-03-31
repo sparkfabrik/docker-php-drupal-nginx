@@ -13,6 +13,9 @@ env:
   TAG_1_13: 1.13.6-alpine.d8
   TAG_1_17: 1.17.6-alpine.d8
   TAG_D8: d8
+  TAG_1_13_RL: 1.13.6-alpine.d8-rootless
+  TAG_1_17_RL: 1.17.6-alpine.d8-rootless
+  TAG_D8_RL: d8-rootless
 
 jobs:
   push:
@@ -27,8 +30,10 @@ jobs:
 
       - name: Build images
         run: |
-          docker build . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13
-          docker build . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17
+          docker build . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13 --build-arg user=root
+          docker build . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17 --build-arg user=root
+          docker build . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13_RL --build-arg user=nginx
+          docker build . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17_RL --build-arg user=nginx
 
       - name: Push images to GitHub Container Registry
         run: |
@@ -39,6 +44,12 @@ jobs:
           docker tag $IMAGE_NAME:$TAG_1_13 $IMAGE_ID:$TAG_1_13
           docker tag $IMAGE_NAME:$TAG_1_13 $IMAGE_ID:$TAG_D8
           docker tag $IMAGE_NAME:$TAG_1_17 $IMAGE_ID:$TAG_1_17
+          docker tag $IMAGE_NAME:$TAG_1_13_RL $IMAGE_ID:$TAG_1_13_RL
+          docker tag $IMAGE_NAME:$TAG_1_13_RL $IMAGE_ID:$TAG_D8_RL
+          docker tag $IMAGE_NAME:$TAG_1_17_RL $IMAGE_ID:$TAG_1_17_RL
           docker push $IMAGE_ID:$TAG_1_13
           docker push $IMAGE_ID:$TAG_D8
           docker push $IMAGE_ID:$TAG_1_17
+          docker push $IMAGE_ID:$TAG_1_13_RL
+          docker push $IMAGE_ID:$TAG_D8_RL
+          docker push $IMAGE_ID:$TAG_1_17_RL
