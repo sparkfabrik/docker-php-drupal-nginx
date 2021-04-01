@@ -30,10 +30,10 @@ jobs:
 
       - name: Build images
         run: |
-          docker build . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13 --build-arg user=root --build-arg group=root
-          docker build . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17 --build-arg user=root --build-arg group=root
-          docker build . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13_RL --build-arg user=nginx --build-arg group=nginx
-          docker build . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17_RL --build-arg user=nginx --build-arg group=nginx
+          docker build . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13 --build-arg user=root
+          docker build . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17 --build-arg user=root
+          docker build . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13_RL --build-arg user=1001
+          docker build . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17_RL --build-arg user=1001
 
       - name: Push images to GitHub Container Registry
         run: |

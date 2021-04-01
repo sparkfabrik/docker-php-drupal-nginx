@@ -18,10 +18,13 @@ else
   cp /templates/catch-all-server.conf /etc/nginx/conf.d/catch-all-server.conf
 fi
 
-export ROOTLESS_INSTANCE=${ROOTLESS_INSTANCE:-0}
-if [ ${ROOTLESS_INSTANCE} -eq 1 ]; then
+# If you use the rootless image the user directive is not needed
+# and you cannot use the 80 port
+if [ $(id -u) -ne 0 ]; then
   sed -i '/^user /d' /etc/nginx/nginx.conf
-  NGINX_DEFAULT_SERVER_PORT=8080
+  if [ ${NGINX_DEFAULT_SERVER_PORT} -eq 80 ]; then
+    NGINX_DEFAULT_SERVER_PORT=8080
+  fi
 fi
 
 export NGINX_DEFAULT_ROOT=${NGINX_DEFAULT_ROOT:-/var/www/html}
