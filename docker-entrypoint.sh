@@ -2,6 +2,7 @@
 set -e
 export PHP_HOST=${PHP_HOST:-php}
 export PHP_PORT=${PHP_PORT:-9000}
+export NGINX_DEFAULT_SERVER_PORT=${NGINX_DEFAULT_SERVER_PORT:-80}
 export NGINX_PHP_READ_TIMEOUT=${NGINX_PHP_READ_TIMEOUT:-900}
 # If the variable NGINX_DEFAULT_SERVER_NAME is left empty
 # (in this case the default value _ will be used), the default.conf
@@ -16,6 +17,16 @@ else
   export DEFAULT_SERVER=""
   cp /templates/catch-all-server.conf /etc/nginx/conf.d/catch-all-server.conf
 fi
+
+# If you use the rootless image the user directive is not needed
+# and you cannot use the 80 port
+if [ $(id -u) -ne 0 ]; then
+  sed -i '/^user /d' /etc/nginx/nginx.conf
+  if [ ${NGINX_DEFAULT_SERVER_PORT} -eq 80 ]; then
+    NGINX_DEFAULT_SERVER_PORT=8080
+  fi
+fi
+
 export NGINX_DEFAULT_ROOT=${NGINX_DEFAULT_ROOT:-/var/www/html}
 export NGINX_HTTPSREDIRECT=${NGINX_HTTPSREDIRECT:-0}
 export NGINX_SUBFOLDER=${NGINX_SUBFOLDER:-0}
@@ -33,9 +44,9 @@ fi
 if [ ${NGINX_GZIP_ENABLE} == 1 ]; then
   cp /templates/gzip.conf /etc/nginx/conf.d/gzip.conf
 fi
-envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
+envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
 if [ ${NGINX_SUBFOLDER} != 0 ]; then
-  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED}' < /templates/subfolder.conf > /etc/nginx/conf.d/default.conf
+  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED}' < /templates/subfolder.conf > /etc/nginx/conf.d/default.conf
 fi
 
 # Handle robots.txt and sitemap directive
@@ -50,7 +61,7 @@ fi
 for filename in /etc/nginx/conf.d/fragments/*.conf; do
   if [ -e "${filename}" ] ; then
     cp ${filename} ${filename}.tmp
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER}' < $filename.tmp > $filename
+    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER}' < $filename.tmp > $filename
     rm ${filename}.tmp
   fi
 done
@@ -59,7 +70,7 @@ done
 for filename in /etc/nginx/conf.d/custom/*.conf; do
   if [ -e "${filename}" ] ; then
     cp ${filename} ${filename}.tmp
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER}' < $filename.tmp > $filename
+    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER}' < $filename.tmp > $filename
     rm ${filename}.tmp
   fi
 done
