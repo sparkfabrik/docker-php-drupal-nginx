@@ -2,7 +2,6 @@
 set -e
 export PHP_HOST=${PHP_HOST:-php}
 export PHP_PORT=${PHP_PORT:-9000}
-export NGINX_DEFAULT_SERVER_PORT=${NGINX_DEFAULT_SERVER_PORT:-80}
 export NGINX_PHP_READ_TIMEOUT=${NGINX_PHP_READ_TIMEOUT:-900}
 # If the variable NGINX_DEFAULT_SERVER_NAME is left empty
 # (in this case the default value _ will be used), the default.conf
@@ -19,12 +18,11 @@ else
 fi
 
 # If you use the rootless image the user directive is not needed
-# and you cannot use the 80 port
 if [ $(id -u) -ne 0 ]; then
   sed -i '/^user /d' /etc/nginx/nginx.conf
-  if [ ${NGINX_DEFAULT_SERVER_PORT} -eq 80 ]; then
-    NGINX_DEFAULT_SERVER_PORT=8080
-  fi
+  export NGINX_DEFAULT_SERVER_PORT=${NGINX_DEFAULT_SERVER_PORT:-8080}
+else
+  export NGINX_DEFAULT_SERVER_PORT=${NGINX_DEFAULT_SERVER_PORT:-80}
 fi
 
 export NGINX_DEFAULT_ROOT=${NGINX_DEFAULT_ROOT:-/var/www/html}
