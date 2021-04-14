@@ -14,7 +14,7 @@ if [ $NGINX_DEFAULT_SERVER_NAME == "_" ]; then
   export DEFAULT_SERVER="default_server"
 else
   export DEFAULT_SERVER=""
-  cp /templates/catch-all-server.conf /etc/nginx/conf.d/catch-all-server.conf
+  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED}' < /templates/catch-all-server.conf > /etc/nginx/conf.d/catch-all-server.conf
 fi
 
 # If you use the rootless image the user directive is not needed
