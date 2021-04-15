@@ -29,13 +29,13 @@ jobs:
       - name: Test images
         run: |
           ./tests/image_verify.sh --source tests/expectations --env-file tests/envfile --http-port 80 --user root $IMAGE_NAME:$TAG_1_13
-          ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --user root $IMAGE_NAME:$TAG_1_13
+          ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --http-host nginx_default_server_name --user root $IMAGE_NAME:$TAG_1_13
           ./tests/image_verify.sh --source tests/expectations --env-file tests/envfile --http-port 80 --user root $IMAGE_NAME:$TAG_1_17
-          ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --user root $IMAGE_NAME:$TAG_1_17
+          ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --http-host nginx_default_server_name --user root $IMAGE_NAME:$TAG_1_17
           ./tests/image_verify.sh --source tests/expectations --env-file tests/envfile --http-port 8080 --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_13_RL
-          ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_13_RL
+          ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --http-host nginx_default_server_name --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_13_RL
           ./tests/image_verify.sh --source tests/expectations --env-file tests/envfile --http-port 8080 --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_17_RL
-          ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_17_RL
+          ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --http-host nginx_default_server_name --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_17_RL
 
   deploy:
     needs: test

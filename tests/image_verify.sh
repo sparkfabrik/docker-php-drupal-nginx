@@ -22,6 +22,7 @@ DOCKER_TEST_IMAGE="alpine/httpie:latest"
 DOCKER_TEST_IP=""
 DOCKER_TEST_PORT=80
 DOCKER_TEST_PROTO="http"
+DOCKER_TEST_HOST=""
 
 DOCKER_TEST_OUTPUT=""
 DOCKER_TEST_HEADER_REQ=""
@@ -51,6 +52,7 @@ printf "%-${PAD}s %s\n" "DOCKER_TEST_IMAGE" "${DOCKER_TEST_IMAGE}"
 printf "%-${PAD}s %s\n" "DOCKER_IMAGE" "${DOCKER_IMAGE}"
 printf "%-${PAD}s %s\n" "PORT" "${DOCKER_TEST_PORT}"
 printf "%-${PAD}s %s\n" "PROTO" "${DOCKER_TEST_PROTO}"
+printf "%-${PAD}s %s\n" "HOST" "${DOCKER_TEST_HOST}"
 printf "%-${PAD}s %s\n" "ENV_LIST" "${ENV_LIST}"
 printf "%-${PAD}s %s\n" "ENV_FILE" "${ENV_FILE}"
 printf "%-${PAD}s %s\n" "SOURCE_FILE" "${SOURCE_FILE}"
@@ -99,6 +101,7 @@ Options:
                                       the container image (these variables will override the --env defined ones)
   --http-port N                       Defines the HTTP port, if missing the default 80 port is used
   --http-proto STRING [http|https]    Defines the HTTP protocol to use, if missing the default http is used
+  --http-host STRING                  Defines the HTTP HOST to use, if missing the empty header is used
   --source PATH                       Defines a path for a file which includes the desired expectations
   --user,-u STRING                    Defines the default user for the image
 EOM
@@ -128,6 +131,7 @@ while [ -n "${1}" ]; do
     --env-file) ENV_FILE="${2}"; if [ ! -f "${ENV_FILE}" ]; then exit 3; fi; shift 2 ;;
     --http-port) DOCKER_TEST_PORT="${2}"; shift 2 ;;
     --http-proto) DOCKER_TEST_PROTO="${2}"; shift 2 ;;
+    --http-host) DOCKER_TEST_HOST="${2}"; shift 2 ;;
     --source) SOURCE_FILE="${2}"; if [ ! -f "${SOURCE_FILE}" ]; then exit 2; fi; shift 2 ;;
     --user|-u) TEST_USER="${2}"; shift 2 ;;
     -*|--*=) echo "Error: Unsupported flag $1" >&2; exit 1 ;;
@@ -277,6 +281,15 @@ fi
 #   exit 8
 # fi
 
+stop_container() {
+  if [ -n "${CONTAINER_ID}" ]; then
+    if [ $DEBUG -eq 1 ]; then
+      echo "Docker stop command: docker stop ${CONTAINER_ID} >/dev/null 2>&1"
+    fi
+    docker stop ${CONTAINER_ID} >/dev/null 2>&1
+  fi
+}
+
 echo "Start testing process on image: ${DOCKER_IMAGE} ..."
 
 EXIT_STATUS=0
@@ -288,6 +301,7 @@ fi
 CONTAINER_ID=$(docker run ${DOCKER_ENV} --rm -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE})
 if [ $? -ne 0 ]; then
   echo "Failed to start the docker image"
+  stop_container
   exit 9
 fi
 
@@ -301,15 +315,21 @@ fi
 DOCKER_TEST_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_ID})
 if [ $? -ne 0 ]; then
   echo "Failed to discover the IP address of the docker image"
+  stop_container
   exit 10
 fi
 
-if [ $DEBUG -eq 1 ]; then
-  echo "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/test.html"
+HTTP_HEADERS=""
+if [ -n "${DOCKER_TEST_HOST}" ]; then
+  HTTP_HEADERS="${HTTP_HEADERS} Host:${DOCKER_TEST_HOST}"
 fi
-DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/test.html)
+if [ $DEBUG -eq 1 ]; then
+  echo "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/test.html ${HTTP_HEADERS}"
+fi
+DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/test.html ${HTTP_HEADERS})
 if [ $? -ne 0 ]; then
   echo "Failed to get the data"
+  stop_container
   exit 11
 fi
 
@@ -378,10 +398,7 @@ if [ -n "${TEST_USER}" ]; then
   test_for_user
 fi
 
-if [ $DEBUG -eq 1 ]; then
-  echo "Docker stop command: docker stop ${CONTAINER_ID} >/dev/null 2>&1"
-fi
-docker stop ${CONTAINER_ID} >/dev/null 2>&1
+stop_container
 
 if [ $EXIT_STATUS -eq 0 ]; then
   echo "\e[32mSUCCESS, all tests passed\e[39m"

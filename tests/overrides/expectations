@@ -1,4 +1,5 @@
 HTTP_STATUS="200 OK"
+HEADER_REQ_Host=nginx_default_server_name
 BODY_RES=<h1>It works in another folder</h1>
 HEADER_RES_Server=nginx
 HEADER_RES_Content-Type=text/html
