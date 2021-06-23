@@ -1,6 +1,11 @@
 name: Docker
-
-on: push
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - master
 
 env:
   IMAGE_NAME: docker-php-drupal-nginx
@@ -19,12 +24,18 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
       - name: Build images
         run: |
-          docker build . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13 --build-arg user=root
-          docker build . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17 --build-arg user=root
-          docker build . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13_RL --build-arg user=1001
-          docker build . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17_RL --build-arg user=1001
+          docker buildx build --load . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13 --build-arg user=root
+          docker buildx build --load . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17 --build-arg user=root
+          docker buildx build --load . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13_RL --build-arg user=1001
+          docker buildx build --load . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17_RL --build-arg user=1001
 
       - name: Test images
         run: |
@@ -55,21 +66,35 @@ jobs:
           docker build . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13_RL --build-arg user=1001
           docker build . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17_RL --build-arg user=1001
 
-      - name: Push images to GitHub Container Registry
+      - name: Build and push images to GitHub Container Registry
         run: |
           IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
           # Change all uppercase to lowercase.
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           echo IMAGE_ID=$IMAGE_ID
-          docker tag $IMAGE_NAME:$TAG_1_13 $IMAGE_ID:$TAG_1_13
-          docker tag $IMAGE_NAME:$TAG_1_13 $IMAGE_ID:$TAG_D8
-          docker tag $IMAGE_NAME:$TAG_1_17 $IMAGE_ID:$TAG_1_17
-          docker tag $IMAGE_NAME:$TAG_1_13_RL $IMAGE_ID:$TAG_1_13_RL
-          docker tag $IMAGE_NAME:$TAG_1_13_RL $IMAGE_ID:$TAG_D8_RL
-          docker tag $IMAGE_NAME:$TAG_1_17_RL $IMAGE_ID:$TAG_1_17_RL
-          docker push $IMAGE_ID:$TAG_1_13
-          docker push $IMAGE_ID:$TAG_D8
-          docker push $IMAGE_ID:$TAG_1_17
-          docker push $IMAGE_ID:$TAG_1_13_RL
-          docker push $IMAGE_ID:$TAG_D8_RL
-          docker push $IMAGE_ID:$TAG_1_17_RL
+
+          docker buildx build --push --platform "linux/amd64,linux/arm64/v8"
+            --file $DOCKERFILE_1_13
+            --tag $IMAGE_NAME:$TAG_1_13
+            --tag $IMAGE_ID:$TAG_1_13
+            --tag $IMAGE_ID:$TAG_D8
+            --build-arg user=root
+          
+          docker buildx build --push --platform "linux/amd64,linux/arm64/v8"
+            --file $DOCKERFILE_1_17
+            --tag $IMAGE_NAME:$TAG_1_17
+            --tag $IMAGE_ID:$TAG_1_17
+            --build-arg user=root
+          
+          docker buildx build --push --platform "linux/amd64,linux/arm64/v8"
+            --file $DOCKERFILE_1_13
+            --tag $IMAGE_NAME:$TAG_1_13_RL
+            --tag $IMAGE_ID:$TAG_1_13_RL
+            --tag $IMAGE_ID:$TAG_D8_RL
+            --build-arg user=1001
+          
+          docker buildx build --push --platform "linux/amd64,linux/arm64/v8"
+            --file $DOCKERFILE_1_13
+            --tag $IMAGE_NAME:$TAG_1_17_RL
+            --tag $IMAGE_ID:$TAG_1_17_RL
+            --build-arg user=1001
