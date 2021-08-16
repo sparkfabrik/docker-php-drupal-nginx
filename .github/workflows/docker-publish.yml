@@ -11,11 +11,14 @@ env:
   IMAGE_NAME: docker-php-drupal-nginx
   DOCKERFILE_1_13: Dockerfile-1.13.6-alpine
   DOCKERFILE_1_17: Dockerfile-1.17.6-alpine
+  DOCKERFILE_1_21: Dockerfile-1.21.1-alpine
   TAG_1_13: 1.13.6-alpine.d8
   TAG_1_17: 1.17.6-alpine.d8
+  TAG_1_21: 1.21.1-alpine.d8
   TAG_D8: d8
   TAG_1_13_RL: 1.13.6-alpine.d8-rootless
   TAG_1_17_RL: 1.17.6-alpine.d8-rootless
+  TAG_1_21_RL: 1.21.1-alpine.d8-rootless
   TAG_D8_RL: d8-rootless
 
 jobs:
@@ -34,8 +37,10 @@ jobs:
         run: |
           docker buildx build --load . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13 --build-arg user=root
           docker buildx build --load . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17 --build-arg user=root
+          docker buildx build --load . --file $DOCKERFILE_1_21 --tag $IMAGE_NAME:$TAG_1_21 --build-arg user=root
           docker buildx build --load . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13_RL --build-arg user=1001
           docker buildx build --load . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17_RL --build-arg user=1001
+          docker buildx build --load . --file $DOCKERFILE_1_21 --tag $IMAGE_NAME:$TAG_1_21_RL --build-arg user=1001
 
       - name: Test images
         run: |
@@ -43,10 +48,14 @@ jobs:
           ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --user root $IMAGE_NAME:$TAG_1_13
           ./tests/image_verify.sh --source tests/expectations --env-file tests/envfile --http-port 80 --user root $IMAGE_NAME:$TAG_1_17
           ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --user root $IMAGE_NAME:$TAG_1_17
+          ./tests/image_verify.sh --source tests/expectations --env-file tests/envfile --http-port 80 --user root $IMAGE_NAME:$TAG_1_21
+          ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --user root $IMAGE_NAME:$TAG_1_21
           ./tests/image_verify.sh --source tests/expectations --env-file tests/envfile --http-port 8080 --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_13_RL
           ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_13_RL
           ./tests/image_verify.sh --source tests/expectations --env-file tests/envfile --http-port 8080 --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_17_RL
           ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_17_RL
+          ./tests/image_verify.sh --source tests/expectations --env-file tests/envfile --http-port 8080 --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_21_RL
+          ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_21_RL
 
   deploy:
     needs: test
@@ -58,7 +67,7 @@ jobs:
 
       - name: Log into GitHub Container Registry
         run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
-      
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
@@ -80,6 +89,10 @@ jobs:
             --file $DOCKERFILE_1_17 \
             --tag $IMAGE_ID:$TAG_1_17 \
             --build-arg user=root
+          docker buildx build --push . --platform "linux/amd64,linux/arm64" \
+            --file $DOCKERFILE_1_21 \
+            --tag $IMAGE_ID:$TAG_1_21 \
+            --build-arg user=root
           docker buildx build --push . --platform "linux/amd64" \
             --file $DOCKERFILE_1_13 \
             --tag $IMAGE_ID:$TAG_1_13_RL \
@@ -88,4 +101,8 @@ jobs:
           docker buildx build --push . --platform "linux/amd64,linux/arm64" \
             --file $DOCKERFILE_1_17 \
             --tag $IMAGE_ID:$TAG_1_17_RL \
+            --build-arg user=1001
+          docker buildx build --push . --platform "linux/amd64,linux/arm64" \
+            --file $DOCKERFILE_1_21 \
+            --tag $IMAGE_ID:$TAG_1_21_RL \
             --build-arg user=1001
