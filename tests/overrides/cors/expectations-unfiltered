@@ -1,0 +1,5 @@
+HTTP_STATUS="200 OK"
+BODY_RES=<h1>It works</h1>
+HEADER_RES_Server=nginx
+HEADER_RES_Content-Type=text/html
+HEADER_RES_Access-Control-Allow-Origin=www.foobar.com

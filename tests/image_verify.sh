@@ -39,6 +39,8 @@ SOURCE_FILE=""
 CUR_TEST_VAR=""
 CUR_TEST_VAL=""
 
+CORS_ORIGIN_HOST=${CORS_ORIGIN_HOST:-"www.example.com"}
+
 print_dry_run() {
   PAD=60
   cat <<EOM
@@ -305,9 +307,9 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ $DEBUG -eq 1 ]; then
-  echo "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/test.html"
+  echo "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/test.html origin:${CORS_ORIGIN_HOST}"
 fi
-DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/test.html)
+DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/test.html origin:${CORS_ORIGIN_HOST})
 if [ $? -ne 0 ]; then
   echo "Failed to get the data"
   exit 11

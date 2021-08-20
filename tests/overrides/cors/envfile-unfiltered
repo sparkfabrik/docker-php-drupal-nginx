@@ -1,0 +1,2 @@
+PHP_HOST=localhost
+NGINX_CORS_ENABLED=1

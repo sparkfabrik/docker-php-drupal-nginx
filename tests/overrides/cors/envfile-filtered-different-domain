@@ -1,0 +1,3 @@
+PHP_HOST=localhost
+NGINX_CORS_ENABLED=1
+NGINX_CORS_DOMAINS=www\.pippobaudo\.com
