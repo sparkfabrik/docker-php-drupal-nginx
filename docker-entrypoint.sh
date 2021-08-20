@@ -36,6 +36,7 @@ export DRUPAL_PUBLIC_FILES_PATH=${DRUPAL_PUBLIC_FILES_PATH:-sites/default/files}
 export NGINX_CACHE_CONTROL_HEADER=${NGINX_CACHE_CONTROL_HEADER:-public,max-age=3600}
 export NGINX_GZIP_ENABLE=${NGINX_GZIP_ENABLE:-1}
 export SITEMAP_URL=${SITEMAP_URL}
+export NGINX_CORS_ENABLED_DOMAINS=${NGINX_CORS_ENABLED_DOMAINS}
 if [ ${NGINX_HTTPSREDIRECT} == 1 ]; then
   sed  -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/default.conf;
   sed  -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/subfolder.conf;
