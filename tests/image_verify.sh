@@ -383,7 +383,7 @@ fi
 if [ $DEBUG -eq 1 ]; then
   echo "Docker stop command: docker stop ${CONTAINER_ID} >/dev/null 2>&1"
 fi
-docker stop ${CONTAINER_ID} >/dev/null 2>&1
+#docker stop ${CONTAINER_ID} >/dev/null 2>&1
 
 if [ $EXIT_STATUS -eq 0 ]; then
   echo "\e[32mSUCCESS, all tests passed\e[39m"
