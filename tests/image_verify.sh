@@ -307,9 +307,9 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ $DEBUG -eq 1 ]; then
-  echo "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/test.html origin:${CORS_ORIGIN_HOST}"
+  echo "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/test.html origin:http://${CORS_ORIGIN_HOST}"
 fi
-DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/test.html origin:${CORS_ORIGIN_HOST})
+DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/test.html origin:http://${CORS_ORIGIN_HOST})
 if [ $? -ne 0 ]; then
   echo "Failed to get the data"
   exit 11
