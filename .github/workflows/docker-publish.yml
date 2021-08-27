@@ -60,7 +60,7 @@ jobs:
           # CORS Tests.
 
           ## ROOT images - 1.13
-          ./tests/image_verify.sh --http-port 4321  --source tests/overrides/cors/expectations --env-file tests/overrides/cors/envfile-filtered --http-port 80 --user root $IMAGE_NAME:$TAG_1_13
+          ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations --env-file tests/overrides/cors/envfile-filtered --http-port 80 --user root $IMAGE_NAME:$TAG_1_13
           CORS_ORIGIN_HOST=www.foobar.com ./tests/image_verify.sh --http-port 4321  --source tests/overrides/cors/expectations-unfiltered --env-file tests/overrides/cors/envfile-unfiltered --http-port 80 --user root $IMAGE_NAME:$TAG_1_13
           ## Here we want to assert that CORS header is not present.
           ./tests/image_verify.sh \
