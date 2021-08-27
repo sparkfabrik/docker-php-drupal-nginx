@@ -57,6 +57,31 @@ jobs:
           ./tests/image_verify.sh --source tests/expectations --env-file tests/envfile --http-port 8080 --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_21_RL
           ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_21_RL
 
+          # CORS Tests.
+          ./tests/image_verify.sh --source tests/overrides/cors/expectations --env-file tests/overrides/cors/envfile-filtered --http-port 80 --user root $IMAGE_NAME:$TAG_1_13
+          CORS_ORIGIN_HOST=www.foobar.com ./tests/image_verify.sh --source tests/overrides/cors/expectations-unfiltered --env-file tests/overrides/cors/envfile-unfiltered --http-port 80 --user root $IMAGE_NAME:$TAG_1_13
+          ## Here we want to assert that CORS header is not present.
+          ./tests/image_verify.sh \
+          --source tests/overrides/cors/expectations-filtered-different-domain \
+          --env-file tests/overrides/cors/envfile-filtered-different-domain \
+          --http-port 80 --user root $IMAGE_NAME:$TAG_1_17 || (EXIT_CODE=$?; if [ $EXIT_CODE -eq 5 ]; then exit 0; else exit $EXIT_CODE; fi)
+
+          ./tests/image_verify.sh --source tests/overrides/cors/expectations --env-file tests/overrides/cors/envfile-filtered --http-port 80 --user root $IMAGE_NAME:$TAG_1_17
+          CORS_ORIGIN_HOST=www.foobar.com ./tests/image_verify.sh --source tests/overrides/cors/expectations-unfiltered --env-file tests/overrides/cors/envfile-unfiltered --http-port 80 --user root $IMAGE_NAME:$TAG_1_17
+          ## Here we want to assert that CORS header is not present.
+          ./tests/image_verify.sh \
+          --source tests/overrides/cors/expectations-filtered-different-domain \
+          --env-file tests/overrides/cors/envfile-filtered-different-domain \
+          --http-port 80 --user root $IMAGE_NAME:$TAG_1_17 || (EXIT_CODE=$?; if [ $EXIT_CODE -eq 5 ]; then exit 0; else exit $EXIT_CODE; fi)
+
+          ./tests/image_verify.sh --source tests/overrides/cors/expectations --env-file tests/overrides/cors/envfile-filtered --http-port 80 --user root $IMAGE_NAME:$TAG_1_21_RL
+          CORS_ORIGIN_HOST=www.foobar.com ./tests/image_verify.sh --source tests/overrides/cors/expectations-unfiltered --env-file tests/overrides/cors/envfile-unfiltered --http-port 80 --user root $IMAGE_NAME:$TAG_1_21_RL
+          ## Here we want to assert that CORS header is not present.
+          ./tests/image_verify.sh \
+          --source tests/overrides/cors/expectations-filtered-different-domain \
+          --env-file tests/overrides/cors/envfile-filtered-different-domain \
+          --http-port 80 --user root $IMAGE_NAME:$TAG_1_21_RL || (EXIT_CODE=$?; if [ $EXIT_CODE -eq 5 ]; then exit 0; else exit $EXIT_CODE; fi)
+
   deploy:
     needs: test
     runs-on: ubuntu-latest
