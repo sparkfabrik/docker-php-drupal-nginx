@@ -58,7 +58,8 @@ jobs:
           ./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_21_RL
 
           # CORS Tests.
-
+          echo "Starting CORS tests..."
+          
           ## ROOT images - 1.13
           ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations --env-file tests/overrides/cors/envfile-filtered --user root $IMAGE_NAME:$TAG_1_13
           CORS_ORIGIN_HOST=www.foobar.com ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations-unfiltered --env-file tests/overrides/cors/envfile-unfiltered --user root $IMAGE_NAME:$TAG_1_13
