@@ -22,6 +22,7 @@ DOCKER_TEST_IMAGE="alpine/httpie:latest"
 DOCKER_TEST_IP=""
 DOCKER_TEST_PORT=80
 DOCKER_TEST_PROTO="http"
+DOCKER_TEST_PATH=${DOCKER_TEST_PATH:-test.html}
 
 DOCKER_TEST_OUTPUT=""
 DOCKER_TEST_HEADER_REQ=""
@@ -285,11 +286,12 @@ EXIT_STATUS=0
 
 process_docker_env
 if [ $DEBUG -eq 1 ]; then
-  echo "Docker run command: docker run ${DOCKER_ENV} --rm -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE}"
+  echo "Docker run command: docker run ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE}"
 fi
-CONTAINER_ID=$(docker run ${DOCKER_ENV} --rm -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE})
+CONTAINER_ID=$(docker run ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE})
 if [ $? -ne 0 ]; then
   echo "Failed to start the docker image"
+  docker logs ${CONTAINER_ID}
   exit 9
 fi
 
@@ -307,9 +309,9 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ $DEBUG -eq 1 ]; then
-  echo "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/test.html origin:http://${CORS_ORIGIN_HOST}"
+  echo "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} origin:http://${CORS_ORIGIN_HOST}"
 fi
-DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/test.html origin:http://${CORS_ORIGIN_HOST})
+DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} origin:http://${CORS_ORIGIN_HOST})
 if [ $? -ne 0 ]; then
   echo "Failed to get the data"
   exit 11
@@ -383,7 +385,7 @@ fi
 if [ $DEBUG -eq 1 ]; then
   echo "Docker stop command: docker stop ${CONTAINER_ID} >/dev/null 2>&1"
 fi
-#docker stop ${CONTAINER_ID} >/dev/null 2>&1
+docker stop ${CONTAINER_ID} >/dev/null 2>&1
 
 if [ $EXIT_STATUS -eq 0 ]; then
   echo "\e[32mSUCCESS, all tests passed\e[39m"
