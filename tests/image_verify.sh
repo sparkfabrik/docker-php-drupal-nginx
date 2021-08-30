@@ -328,7 +328,7 @@ for line in $(echo "${DOCKER_TEST_OUTPUT}" | tr -d '\r' | sed 's/^$/'${SEP}'/g')
 
     [ "${LINE_VAL}" = "${EMPTY_PLACEHOLDER}\n" ] && SAVE_LINE_VAL="\n" || SAVE_LINE_VAL="${LINE_VAL}"
     if [ $LINE_POS -eq 0 ]; then
-      DOCKqR_TEST_HEADER_REQ="${SAVE_LINE_VAL%??}"
+      DOCKER_TEST_HEADER_REQ="${SAVE_LINE_VAL%??}"
     elif [ $LINE_POS -eq 1 ]; then
       DOCKER_TEST_BODY_REQ="${SAVE_LINE_VAL%??}"
     elif [ $LINE_POS -eq 2 ]; then
