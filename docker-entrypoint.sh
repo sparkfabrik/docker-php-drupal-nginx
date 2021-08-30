@@ -42,17 +42,17 @@ export NGINX_CACHE_CONTROL_HEADER=${NGINX_CACHE_CONTROL_HEADER:-public,max-age=3
 export NGINX_GZIP_ENABLE=${NGINX_GZIP_ENABLE:-1}
 export SITEMAP_URL=${SITEMAP_URL}
 
-# Activate CORS on root location using a fragment.
+# Activate CORS on php location using a fragment.
 export NGINX_CORS_ENABLED=${NGINX_CORS_ENABLED:-0}
 export NGINX_CORS_DOMAINS=${NGINX_CORS_DOMAINS}
 if [ ${NGINX_CORS_ENABLED} == 1 ]; then
-  mkdir -p /etc/nginx/conf.d/fragments/location/root
+  mkdir -p /etc/nginx/conf.d/fragments/location/php
   if [ ! -z ${NGINX_CORS_DOMAINS} ]; then
     print "Activating filtered CORS on domains: ${NGINX_CORS_DOMAINS}"
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_CORS_DOMAINS}' < /templates/fragments/location/root/cors-filtered.conf > /etc/nginx/conf.d/fragments/location/root/cors.conf
+    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_CORS_DOMAINS}' < /templates/fragments/location/php/cors-filtered.conf > /etc/nginx/conf.d/fragments/location/php/cors.conf
   else
     print "Activating unfiltered CORS"
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER}' < /templates/fragments/location/root/cors-unfiltered.conf > /etc/nginx/conf.d/fragments/location/root/cors.conf
+    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER}' < /templates/fragments/location/php/cors-unfiltered.conf > /etc/nginx/conf.d/fragments/location/php/cors.conf
   fi
 fi
 
