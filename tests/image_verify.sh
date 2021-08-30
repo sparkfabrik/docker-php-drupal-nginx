@@ -285,11 +285,12 @@ EXIT_STATUS=0
 
 process_docker_env
 if [ $DEBUG -eq 1 ]; then
-  echo "Docker run command: docker run ${DOCKER_ENV} --rm -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE}"
+  echo "Docker run command: docker run ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE}"
 fi
-CONTAINER_ID=$(docker run ${DOCKER_ENV} --rm -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE})
+CONTAINER_ID=$(docker run ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE})
 if [ $? -ne 0 ]; then
   echo "Failed to start the docker image"
+  docker logs ${CONTAINER_ID}
   exit 9
 fi
 
