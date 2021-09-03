@@ -46,13 +46,13 @@ export SITEMAP_URL=${SITEMAP_URL}
 export NGINX_CORS_ENABLED=${NGINX_CORS_ENABLED:-0}
 export NGINX_CORS_DOMAINS=${NGINX_CORS_DOMAINS}
 if [ ${NGINX_CORS_ENABLED} == 1 ]; then
-  mkdir -p /etc/nginx/conf.d/fragments/location/php
+  mkdir -p /etc/nginx/conf.d/fragments/location/cors
   if [ ! -z ${NGINX_CORS_DOMAINS} ]; then
     print "Activating filtered CORS on domains: ${NGINX_CORS_DOMAINS}"
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_CORS_DOMAINS}' < /templates/fragments/location/php/cors-filtered.conf > /etc/nginx/conf.d/fragments/location/php/cors.conf
+    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_CORS_DOMAINS}' < /templates/fragments/location/cors/cors-filtered.conf > /etc/nginx/conf.d/fragments/location/cors/cors.conf
   else
     print "Activating unfiltered CORS"
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER}' < /templates/fragments/location/php/cors-unfiltered.conf > /etc/nginx/conf.d/fragments/location/php/cors.conf
+    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER}' < /templates/fragments/location/cors/cors-unfiltered.conf > /etc/nginx/conf.d/fragments/location/cors/cors.conf
   fi
 fi
 
@@ -92,16 +92,6 @@ done
 # Rewrite custom server fragments.
 print "Rewriting custom server fragments on /etc/nginx/conf.d/custom/*.conf"
 for filename in /etc/nginx/conf.d/custom/*.conf; do
-  if [ -e "${filename}" ] ; then
-    cp ${filename} ${filename}.tmp
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER}' < $filename.tmp > $filename
-    rm ${filename}.tmp
-  fi
-done
-
-# Rewrite root location fragments.
-print "${0}: Rewriting root location fragments on /etc/nginx/conf.d/fragments/location/root/*.conf"
-for filename in /etc/nginx/conf.d/fragments/location/root/*.conf; do
   if [ -e "${filename}" ] ; then
     cp ${filename} ${filename}.tmp
     envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER}' < $filename.tmp > $filename
