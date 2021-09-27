@@ -14,7 +14,7 @@ test:
 	./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --user root sparkfabrik/docker-php-drupal-nginx:1.21.1-alpine.d8
 	
 	## CORS Tests.
-	./tests/image_verify.sh --source tests/overrides/cors/expectations --env-file tests/overrides/cors/envfile-filtered --http-port 80 --user root sparkfabrik/docker-php-drupal-nginx:1.21.1-alpine.d8
+	./tests/image_verify.sh --source tests/overrides/cors/expectations-filtered --env-file tests/overrides/cors/envfile-filtered --http-port 80 --user root sparkfabrik/docker-php-drupal-nginx:1.21.1-alpine.d8
 	CORS_ORIGIN_HOST=www.foobar.com ./tests/image_verify.sh --source tests/overrides/cors/expectations-unfiltered --env-file tests/overrides/cors/envfile-unfiltered --http-port 80 --user root sparkfabrik/docker-php-drupal-nginx:1.21.1-alpine.d8
 
 	## Here we want to assert that CORS header is not present.
@@ -37,7 +37,7 @@ test-rootless:
 	./tests/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --user "unknown uid 1001" sparkfabrik/docker-php-drupal-nginx:1.21.1-alpine.d8-rootless
 	
 	# CORS Tests.
-	./tests/image_verify.sh --source tests/overrides/cors/expectations --env-file tests/overrides/cors/envfile-filtered --http-port 80 --user root sparkfabrik/docker-php-drupal-nginx:1.21.1-alpine.d8
+	./tests/image_verify.sh --source tests/overrides/cors/expectations-filtered --env-file tests/overrides/cors/envfile-filtered --http-port 80 --user root sparkfabrik/docker-php-drupal-nginx:1.21.1-alpine.d8
 	CORS_ORIGIN_HOST=www.foobar.com ./tests/image_verify.sh --source tests/overrides/cors/expectations-unfiltered --env-file tests/overrides/cors/envfile-unfiltered --http-port 80 --user root sparkfabrik/docker-php-drupal-nginx:1.21.1-alpine.d8
 
 	## Here we want to assert that CORS header is not present.

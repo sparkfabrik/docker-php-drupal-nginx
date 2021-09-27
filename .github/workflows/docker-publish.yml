@@ -61,7 +61,7 @@ jobs:
           echo "Starting CORS tests..."
 
           ## ROOT images - 1.13
-          DOCKER_TEST_PATH=index.php ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations --env-file tests/overrides/cors/envfile-filtered --user root $IMAGE_NAME:$TAG_1_13
+          DOCKER_TEST_PATH=index.php ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations-filtered --env-file tests/overrides/cors/envfile-filtered --user root $IMAGE_NAME:$TAG_1_13
           DOCKER_TEST_PATH=index.php CORS_ORIGIN_HOST=www.foobar.com ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations-unfiltered --env-file tests/overrides/cors/envfile-unfiltered --user root $IMAGE_NAME:$TAG_1_13
           ## Here we want to assert that CORS header is not present.
           DOCKER_TEST_PATH=index.php ./tests/image_verify.sh \
@@ -71,7 +71,7 @@ jobs:
           --user root $IMAGE_NAME:$TAG_1_13 || (EXIT_CODE=$?; if [ $EXIT_CODE -eq 5 ]; then exit 0; else exit $EXIT_CODE; fi)
 
           ## Rootless images - 1.13
-          DOCKER_TEST_PATH=index.php ./tests/image_verify.sh --http-port 4321  --source tests/overrides/cors/expectations --env-file tests/overrides/cors/envfile-filtered --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_13_RL
+          DOCKER_TEST_PATH=index.php ./tests/image_verify.sh --http-port 4321  --source tests/overrides/cors/expectations-filtered --env-file tests/overrides/cors/envfile-filtered --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_13_RL
           DOCKER_TEST_PATH=index.php CORS_ORIGIN_HOST=www.foobar.com ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations-unfiltered --env-file tests/overrides/cors/envfile-unfiltered --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_13_RL
           ## Here we want to assert that CORS header is not present.
           DOCKER_TEST_PATH=index.php ./tests/image_verify.sh \
@@ -81,7 +81,7 @@ jobs:
           --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_13_RL || (EXIT_CODE=$?; if [ $EXIT_CODE -eq 5 ]; then exit 0; else exit $EXIT_CODE; fi)
 
           ## ROOT images - 1.17
-          DOCKER_TEST_PATH=index.php ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations --env-file tests/overrides/cors/envfile-filtered --user root $IMAGE_NAME:$TAG_1_17
+          DOCKER_TEST_PATH=index.php ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations-filtered --env-file tests/overrides/cors/envfile-filtered --user root $IMAGE_NAME:$TAG_1_17
           DOCKER_TEST_PATH=index.php CORS_ORIGIN_HOST=www.foobar.com ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations-unfiltered --env-file tests/overrides/cors/envfile-unfiltered --user root $IMAGE_NAME:$TAG_1_17
           ## Here we want to assert that CORS header is not present.
           DOCKER_TEST_PATH=index.php ./tests/image_verify.sh \
@@ -91,7 +91,7 @@ jobs:
           --user root $IMAGE_NAME:$TAG_1_17 || (EXIT_CODE=$?; if [ $EXIT_CODE -eq 5 ]; then exit 0; else exit $EXIT_CODE; fi)
 
           ## Rootless images - 1.17
-          DOCKER_TEST_PATH=index.php ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations --env-file tests/overrides/cors/envfile-filtered --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_17_RL
+          DOCKER_TEST_PATH=index.php ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations-filtered --env-file tests/overrides/cors/envfile-filtered --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_17_RL
           DOCKER_TEST_PATH=index.php CORS_ORIGIN_HOST=www.foobar.com ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations-unfiltered --env-file tests/overrides/cors/envfile-unfiltered --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_17_RL
           ## Here we want to assert that CORS header is not present.
           DOCKER_TEST_PATH=index.php ./tests/image_verify.sh \
@@ -101,7 +101,7 @@ jobs:
           --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_17_RL || (EXIT_CODE=$?; if [ $EXIT_CODE -eq 5 ]; then exit 0; else exit $EXIT_CODE; fi)
 
           ## ROOT images - 1.21
-          DOCKER_TEST_PATH=index.php ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations --env-file tests/overrides/cors/envfile-filtered --user root $IMAGE_NAME:$TAG_1_21
+          DOCKER_TEST_PATH=index.php ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations-filtered --env-file tests/overrides/cors/envfile-filtered --user root $IMAGE_NAME:$TAG_1_21
           DOCKER_TEST_PATH=index.php CORS_ORIGIN_HOST=www.foobar.com ./tests/image_verify.sh --http-port 4321  --source tests/overrides/cors/expectations-unfiltered --env-file tests/overrides/cors/envfile-unfiltered --user root $IMAGE_NAME:$TAG_1_21
           ## Here we want to assert that CORS header is not present.
           DOCKER_TEST_PATH=index.php ./tests/image_verify.sh \
@@ -111,7 +111,7 @@ jobs:
           --user root $IMAGE_NAME:$TAG_1_21 || (EXIT_CODE=$?; if [ $EXIT_CODE -eq 5 ]; then exit 0; else exit $EXIT_CODE; fi)
 
           ## Rootless images - 1.21
-          DOCKER_TEST_PATH=index.php ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations --env-file tests/overrides/cors/envfile-filtered --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_21_RL
+          DOCKER_TEST_PATH=index.php ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations-filtered --env-file tests/overrides/cors/envfile-filtered --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_21_RL
           DOCKER_TEST_PATH=index.php CORS_ORIGIN_HOST=www.foobar.com ./tests/image_verify.sh --http-port 4321 --source tests/overrides/cors/expectations-unfiltered --env-file tests/overrides/cors/envfile-unfiltered --user "unknown uid 1001" $IMAGE_NAME:$TAG_1_21_RL
           ## Here we want to assert that CORS header is not present.
           DOCKER_TEST_PATH=index.php ./tests/image_verify.sh \

@@ -52,7 +52,7 @@ if [ ${NGINX_CORS_ENABLED} == 1 ]; then
     envsubst '${NGINX_CORS_DOMAINS}' < /templates/fragments/location/php/cors-filtered.conf > /etc/nginx/conf.d/fragments/location/php/cors.conf
   else
     print "Activating unfiltered CORS"
-    copy /templates/fragments/location/php/cors-unfiltered.conf /etc/nginx/conf.d/fragments/location/php/cors.conf
+    cp /templates/fragments/location/php/cors-unfiltered.conf /etc/nginx/conf.d/fragments/location/php/cors.conf
   fi
 fi
 
@@ -60,7 +60,7 @@ if [ ! -z ${NGINX_OSB_BUCKET} ]; then
   mkdir -p /etc/nginx/conf.d/fragments
   # We add osb.conf to fragments if Nginx is configured to use a bucket.
   # Env subst will be done later on all fragments files.
-  copy /templates/fragments/osb.conf /etc/nginx/conf.d/fragments/osb.conf
+  cp /templates/fragments/osb.conf /etc/nginx/conf.d/fragments/osb.conf
   # If we want cors, we need to add mote config to osb location.
   if [ ${NGINX_CORS_ENABLED} == 1 ]; then
     mkdir -p /etc/nginx/conf.d/fragments/location/osb
