@@ -49,10 +49,28 @@ if [ ${NGINX_CORS_ENABLED} == 1 ]; then
   mkdir -p /etc/nginx/conf.d/fragments/location/php
   if [ ! -z ${NGINX_CORS_DOMAINS} ]; then
     print "Activating filtered CORS on domains: ${NGINX_CORS_DOMAINS}"
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_CORS_DOMAINS}' < /templates/fragments/location/php/cors-filtered.conf > /etc/nginx/conf.d/fragments/location/php/cors.conf
+    envsubst '${NGINX_CORS_DOMAINS}' < /templates/fragments/location/php/cors-filtered.conf > /etc/nginx/conf.d/fragments/location/php/cors.conf
   else
     print "Activating unfiltered CORS"
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER}' < /templates/fragments/location/php/cors-unfiltered.conf > /etc/nginx/conf.d/fragments/location/php/cors.conf
+    cp /templates/fragments/location/php/cors-unfiltered.conf /etc/nginx/conf.d/fragments/location/php/cors.conf
+  fi
+fi
+
+if [ ! -z ${NGINX_OSB_BUCKET} -a ! -f "/etc/nginx/conf.d/fragments/osb.conf" ]; then
+  mkdir -p /etc/nginx/conf.d/fragments
+  # We add osb.conf to fragments if Nginx is configured to use a bucket.
+  # Env subst will be done later on all fragments files.
+  cp /templates/fragments/osb.conf /etc/nginx/conf.d/fragments/osb.conf
+  # If we want cors, we need to add mote config to osb location.
+  if [ ${NGINX_CORS_ENABLED} == 1 ]; then
+    mkdir -p /etc/nginx/conf.d/fragments/location/osb
+    if [ ! -z ${NGINX_CORS_DOMAINS} ]; then
+      print "Activating filtered OSB CORS on domains: ${NGINX_CORS_DOMAINS}"
+      envsubst '${NGINX_CACHE_CONTROL_HEADER} ${NGINX_CORS_DOMAINS}' < /templates/fragments/location/osb/cors-filtered.conf > /etc/nginx/conf.d/fragments/location/osb/cors.conf
+    else
+      print "Activating unfiltered OSB CORS"
+      envsubst '${NGINX_CACHE_CONTROL_HEADER}' < /templates/fragments/location/osb/cors-unfiltered.conf > /etc/nginx/conf.d/fragments/location/osb/cors.conf
+    fi
   fi
 fi
 
@@ -61,11 +79,14 @@ if [ ${NGINX_HTTPSREDIRECT} == 1 ]; then
   sed  -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/default.conf;
   sed  -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/subfolder.conf;
 fi
+
 if [ ${NGINX_GZIP_ENABLE} == 1 ]; then
   print "Enabling gzip"
   cp /templates/gzip.conf /etc/nginx/conf.d/gzip.conf
 fi
+
 envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
+
 if [ ${NGINX_SUBFOLDER} != 0 ]; then
   envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED}' < /templates/subfolder.conf > /etc/nginx/conf.d/default.conf
 fi
@@ -94,10 +115,15 @@ print "Rewriting custom server fragments on /etc/nginx/conf.d/custom/*.conf"
 for filename in /etc/nginx/conf.d/custom/*.conf; do
   if [ -e "${filename}" ] ; then
     cp ${filename} ${filename}.tmp
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER}' < $filename.tmp > $filename
+    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER} ${NGINX_CORS_DOMAINS}' < $filename.tmp > $filename
     rm ${filename}.tmp
   fi
 done
+
+# Check if an existing redirects.map file exists, otherwise we create an empty one.
+if [ ! -e "/etc/nginx/conf.d/redirects.map" ] ; then
+  touch "/etc/nginx/conf.d/redirects.map"
+fi
 
 # Rewrite root location fragments.
 print "${0}: Rewriting root location fragments on /etc/nginx/conf.d/fragments/location/root/*.conf"
