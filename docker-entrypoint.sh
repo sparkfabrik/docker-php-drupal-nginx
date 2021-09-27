@@ -56,7 +56,7 @@ if [ ${NGINX_CORS_ENABLED} == 1 ]; then
   fi
 fi
 
-if [ ! -z ${NGINX_OSB_BUCKET} ]; then
+if [ ! -z ${NGINX_OSB_BUCKET} -a ! -f "/etc/nginx/conf.d/fragments/osb.conf" ]; then
   mkdir -p /etc/nginx/conf.d/fragments
   # We add osb.conf to fragments if Nginx is configured to use a bucket.
   # Env subst will be done later on all fragments files.
@@ -124,7 +124,6 @@ done
 if [ ! -e "/etc/nginx/conf.d/redirects.map" ] ; then
   touch "/etc/nginx/conf.d/redirects.map"
 fi
-
 
 # Rewrite root location fragments.
 print "${0}: Rewriting root location fragments on /etc/nginx/conf.d/fragments/location/root/*.conf"
