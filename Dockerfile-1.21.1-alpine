@@ -12,6 +12,8 @@ COPY config/custom.conf /etc/nginx/conf.d/custom.conf
 RUN chmod +x /docker-entrypoint.sh && \
     chmod 775 /etc/nginx && \
     chmod 775 /etc/nginx/conf.d && \
+    mkdir -p /etc/nginx/conf.d/custom && \
+    chmod 775 /etc/nginx/conf.d/custom && \
     mkdir -p /etc/nginx/conf.d/fragments && \
     chmod 775 /etc/nginx/conf.d/fragments && \
     chgrp root /var/cache/nginx && \

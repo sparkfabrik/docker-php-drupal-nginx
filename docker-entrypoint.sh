@@ -56,6 +56,8 @@ if [ ${NGINX_CORS_ENABLED} == 1 ]; then
   fi
 fi
 
+# If we are using an Object Storage Bucket, we add a custom location file.
+# We also check if a file with the same name does not exist, to prevent the override.
 if [ ! -z ${NGINX_OSB_BUCKET} -a ! -f "/etc/nginx/conf.d/fragments/osb.conf" ]; then
   mkdir -p /etc/nginx/conf.d/fragments
   # We add osb.conf to fragments if Nginx is configured to use a bucket.
