@@ -1,0 +1,4 @@
+HTTP_STATUS="301 Moved Permanently"
+HEADER_RES_Server=nginx
+HEADER_RES_Content-Type=text/html
+HEADER_RES_Location=http://www.domain3.eu/test.html

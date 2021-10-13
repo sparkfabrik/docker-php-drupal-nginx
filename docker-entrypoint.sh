@@ -24,7 +24,7 @@ fi
 # to name servers defined in the NGINX_DEFAULT_SERVER_NAME env var
 # and a catch all server retunrning 444 will be added.
 export NGINX_DEFAULT_SERVER_NAME=${NGINX_DEFAULT_SERVER_NAME:-_}
-if [ $NGINX_DEFAULT_SERVER_NAME == "_" ]; then
+if [ "${NGINX_DEFAULT_SERVER_NAME}" = "_" ]; then
   export DEFAULT_SERVER="default_server"
 else
   export DEFAULT_SERVER=""
@@ -41,6 +41,7 @@ export DRUPAL_PUBLIC_FILES_PATH=${DRUPAL_PUBLIC_FILES_PATH:-sites/default/files}
 export NGINX_CACHE_CONTROL_HEADER=${NGINX_CACHE_CONTROL_HEADER:-public,max-age=3600}
 export NGINX_GZIP_ENABLE=${NGINX_GZIP_ENABLE:-1}
 export SITEMAP_URL=${SITEMAP_URL}
+export NGINX_REDIRECT_FROM_TO_WWW=${NGINX_REDIRECT_FROM_TO_WWW:-0}
 
 # Activate CORS on php location using a fragment.
 export NGINX_CORS_ENABLED=${NGINX_CORS_ENABLED:-0}
@@ -58,7 +59,7 @@ fi
 
 # If we are using an Object Storage Bucket, we add a custom location file.
 # We also check if a file with the same name does not exist, to prevent the override.
-if [ ! -z ${NGINX_OSB_BUCKET} -a ! -f "/etc/nginx/conf.d/fragments/osb.conf" ]; then
+if [ ! -z ${NGINX_OSB_BUCKET} ] && [ ! -f "/etc/nginx/conf.d/fragments/osb.conf" ]; then
   mkdir -p /etc/nginx/conf.d/fragments
   # We add osb.conf to fragments if Nginx is configured to use a bucket.
   # Env subst will be done later on all fragments files.
@@ -128,7 +129,7 @@ if [ ! -e "/etc/nginx/conf.d/redirects.map" ] ; then
 fi
 
 # Rewrite root location fragments.
-print "${0}: Rewriting root location fragments on /etc/nginx/conf.d/fragments/location/root/*.conf"
+print "Rewriting root location fragments on /etc/nginx/conf.d/fragments/location/root/*.conf"
 for filename in /etc/nginx/conf.d/fragments/location/root/*.conf; do
   if [ -e "${filename}" ] ; then
     cp ${filename} ${filename}.tmp
@@ -138,4 +139,34 @@ for filename in /etc/nginx/conf.d/fragments/location/root/*.conf; do
 done
 
 envsubst '${NGINX_PHP_READ_TIMEOUT}' < /templates/fastcgi.conf > /etc/nginx/fastcgi.conf
+
+# Process redirect from-to-www configuration
+if [ ${NGINX_REDIRECT_FROM_TO_WWW} -eq 1 ] && [ "${NGINX_DEFAULT_SERVER_NAME}" != "_" ]; then
+  print "Enabling from-to-www redirects"
+  touch /etc/nginx/conf.d/from-to-www.conf
+  for domain in ${NGINX_DEFAULT_SERVER_NAME}; do
+    if [ ${domain:0:4} = "www." ]; then
+      DOMAIN_FROM="${domain#www.}"
+      DOMAIN_TO="${domain}"
+    else
+      DOMAIN_FROM="www.${domain}"
+      DOMAIN_TO="${domain}"
+    fi
+    
+    # Check if the related domain (<domain> without www or www.<domain>) is also valid as server name
+    FOUND_RELATED=0
+    echo "${NGINX_DEFAULT_SERVER_NAME}" | grep -E "(^|\s)${DOMAIN_FROM//./\\.}" >/dev/null || FOUND_RELATED=$?
+
+    # If the related domain is present we need to avoid the redirect because it is a valid domain
+    if [ ${FOUND_RELATED} -ne 0 ]; then
+      print "/etc/nginx/conf.d/from-to-www.conf - Creating a redirect from ${DOMAIN_FROM} to ${DOMAIN_TO}"
+      DOMAIN_FROM=${DOMAIN_FROM} DOMAIN_TO=${DOMAIN_TO} \
+        envsubst '${DOMAIN_FROM} ${DOMAIN_TO} ${NGINX_DEFAULT_SERVER_PORT} ${DEFAULT_SERVER}' < /templates/from-to-www.conf.tpl \
+        | tee -a /etc/nginx/conf.d/from-to-www.conf >/dev/null
+    else
+      print "/etc/nginx/conf.d/from-to-www.conf - Skipping redirect from ${DOMAIN_FROM} to ${DOMAIN_TO} because it already exists"
+    fi
+  done
+fi
+
 exec nginx -g "daemon off;"

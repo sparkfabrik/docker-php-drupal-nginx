@@ -40,7 +40,8 @@ SOURCE_FILE=""
 CUR_TEST_VAR=""
 CUR_TEST_VAL=""
 
-CORS_ORIGIN_HOST=${CORS_ORIGIN_HOST:-"www.example.com"}
+CORS_ORIGIN_HOST=""
+REQ_HEADER_HOST=""
 
 print_dry_run() {
   PAD=60
@@ -54,9 +55,12 @@ printf "%-${PAD}s %s\n" "DOCKER_TEST_IMAGE" "${DOCKER_TEST_IMAGE}"
 printf "%-${PAD}s %s\n" "DOCKER_IMAGE" "${DOCKER_IMAGE}"
 printf "%-${PAD}s %s\n" "PORT" "${DOCKER_TEST_PORT}"
 printf "%-${PAD}s %s\n" "PROTO" "${DOCKER_TEST_PROTO}"
+printf "%-${PAD}s %s\n" "PATH" "${DOCKER_TEST_PATH}"
 printf "%-${PAD}s %s\n" "ENV_LIST" "${ENV_LIST}"
 printf "%-${PAD}s %s\n" "ENV_FILE" "${ENV_FILE}"
 printf "%-${PAD}s %s\n" "SOURCE_FILE" "${SOURCE_FILE}"
+printf "%-${PAD}s %s\n" "CORS_ORIGIN_HOST" "${CORS_ORIGIN_HOST}"
+printf "%-${PAD}s %s\n" "REQ_HEADER_HOST" "${REQ_HEADER_HOST}"
 
 if [ -n "${TEST_USER}" ]; then
     printf "%-${PAD}s %s\n" "CONTAINER_USER" "${TEST_USER}"
@@ -102,7 +106,10 @@ Options:
                                       the container image (these variables will override the --env defined ones)
   --http-port N                       Defines the HTTP port, if missing the default 80 port is used
   --http-proto STRING [http|https]    Defines the HTTP protocol to use, if missing the default http is used
+  --http-path STRING                  Defines the HTTP path to use
   --source PATH                       Defines a path for a file which includes the desired expectations
+  --cors-origin-host STRING           Defines the origin host used to test CORS
+  --req-header-host STRING            Defines the host request header; not used if it is empty
   --user,-u STRING                    Defines the default user for the image
 EOM
 }
@@ -131,7 +138,10 @@ while [ -n "${1}" ]; do
     --env-file) ENV_FILE="${2}"; if [ ! -f "${ENV_FILE}" ]; then exit 3; fi; shift 2 ;;
     --http-port) DOCKER_TEST_PORT="${2}"; shift 2 ;;
     --http-proto) DOCKER_TEST_PROTO="${2}"; shift 2 ;;
+    --http-path) DOCKER_TEST_PATH="${2}"; shift 2 ;;
     --source) SOURCE_FILE="${2}"; if [ ! -f "${SOURCE_FILE}" ]; then exit 2; fi; shift 2 ;;
+    --cors-origin-host) CORS_ORIGIN_HOST="${2}"; shift 2 ;;
+    --req-header-host) REQ_HEADER_HOST="${2}"; shift 2 ;;
     --user|-u) TEST_USER="${2}"; shift 2 ;;
     -*|--*=) echo "Error: Unsupported flag $1" >&2; exit 1 ;;
     *) PARAMS="$PARAMS $1"; shift ;;
@@ -158,8 +168,8 @@ fi
 
 # Check the expectations
 test_eq() {
-  if [ -n "${1}" ] && [ -n "${2}" ]; then
-    if [ "${1}" != "${2}" ]; then
+  # if [ -n "${1}" ] && [ -n "${2}" ]; then
+    if [ "${1:-}" != "${2:-}" ]; then
       TEST_PASSED=0
       LOC_EXIT_STATUS=6
     fi
@@ -173,11 +183,11 @@ test_eq() {
     fi
 
     return $LOC_EXIT_STATUS
-  fi
+  # fi
 
-  TEST_PASSED=0
-  LOC_EXIT_STATUS=6
-  return $LOC_EXIT_STATUS
+  # TEST_PASSED=0
+  # LOC_EXIT_STATUS=6
+  # return $LOC_EXIT_STATUS
 }
 test_for_body_response() {
   LOC_EXIT_STATUS=5
@@ -209,11 +219,11 @@ test_for_body_request() {
 }
 test_for_header_response() {
   LOC_EXIT_STATUS=5
-  if [ -n "${CUR_TEST_VAR}" ] && [ -n "${CUR_TEST_VAL}" ]; then
+  if [ -n "${CUR_TEST_VAR}" ]; then
     LOC_EXIT_STATUS=0
     TEST_PASSED=1
     CONTAINER_VAL=$(echo "${DOCKER_TEST_HEADER_RES}" | grep "^${CUR_TEST_VAR}: " | awk '{gsub(/\r/,""); print $2}')
-    test_eq "${CONTAINER_VAL}" "${CUR_TEST_VAL}" "Response Header ${CUR_TEST_VAR}"
+    test_eq "${CONTAINER_VAL}" "${CUR_TEST_VAL:-}" "Response Header ${CUR_TEST_VAR}"
   fi
 
   if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
@@ -224,11 +234,11 @@ test_for_header_response() {
 }
 test_for_header_request() {
   LOC_EXIT_STATUS=5
-  if [ -n "${CUR_TEST_VAR}" ] && [ -n "${CUR_TEST_VAL}" ]; then
+  if [ -n "${CUR_TEST_VAR}" ]; then
     LOC_EXIT_STATUS=0
     TEST_PASSED=1
     CONTAINER_VAL=$(echo "${DOCKER_TEST_HEADER_REQ}" | grep "^${CUR_TEST_VAR}: " | awk '{gsub(/\r/,""); print $2}')
-    test_eq "${CONTAINER_VAL}" "${CUR_TEST_VAL}" "Request Header ${CUR_TEST_VAR}"
+    test_eq "${CONTAINER_VAL}" "${CUR_TEST_VAL:-}" "Request Header ${CUR_TEST_VAR}"
   fi
 
   if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
@@ -286,9 +296,9 @@ EXIT_STATUS=0
 
 process_docker_env
 if [ $DEBUG -eq 1 ]; then
-  echo "Docker run command: docker run ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE}"
+  echo "Docker run command: docker run --rm ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE}"
 fi
-CONTAINER_ID=$(docker run ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE})
+CONTAINER_ID=$(docker run --rm ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE})
 if [ $? -ne 0 ]; then
   echo "Failed to start the docker image"
   docker logs ${CONTAINER_ID}
@@ -308,10 +318,15 @@ if [ $? -ne 0 ]; then
   exit 10
 fi
 
-if [ $DEBUG -eq 1 ]; then
-  echo "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} origin:http://${CORS_ORIGIN_HOST}"
+HTTPIE_HOST_HEADER=""
+if [ -n "${REQ_HEADER_HOST}" ];then
+  HTTPIE_HOST_HEADER="host:${REQ_HEADER_HOST}"
 fi
-DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} origin:http://${CORS_ORIGIN_HOST})
+
+if [ $DEBUG -eq 1 ]; then
+  echo "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} origin:http://${CORS_ORIGIN_HOST} ${HTTPIE_HOST_HEADER}"
+fi
+DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} origin:http://${CORS_ORIGIN_HOST} ${HTTPIE_HOST_HEADER})
 if [ $? -ne 0 ]; then
   echo "Failed to get the data"
   exit 11
@@ -372,6 +387,11 @@ if [ -f "${SOURCE_FILE}" ]; then
       elif [ "$(echo ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_REQ_/ {print 1}')" = "1" ]; then
         CUR_TEST_VAR=$(echo "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_REQ_/,""); print $0}')
         test_for_header_request
+      fi
+
+      if [ $DEBUG -eq 1 ]; then
+        echo "CUR_TEST_VAR: ${CUR_TEST_VAR}"
+        echo "CUR_TEST_VAL: ${CUR_TEST_VAL}"
       fi
     fi
   done < ${SOURCE_FILE}
