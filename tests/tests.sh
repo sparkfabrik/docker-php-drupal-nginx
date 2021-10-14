@@ -18,6 +18,11 @@ print_title "Base Tests"
 ${BASE}/image_verify.sh --source tests/expectations --env-file tests/envfile --http-port ${BASE_TESTS_PORT} --user "${IMAGE_USER}" ${IMAGE_NAME}:${IMAGE_TAG}
 ${BASE}/image_verify.sh --source tests/overrides/expectations --env-file tests/overrides/envfile --http-port 4321 --user "${IMAGE_USER}" ${IMAGE_NAME}:${IMAGE_TAG}
 
+# Catch all tests.
+print_title "Catch all tests"
+${BASE}/image_verify.sh --source tests/overrides/catch-all/expectations-ok --env-file tests/overrides/catch-all/envfile --http-port 4321 --user "${IMAGE_USER}" --req-header-host www.domain1.com ${IMAGE_NAME}:${IMAGE_TAG}
+${BASE}/image_verify.sh --source tests/overrides/catch-all/expectations-ko --env-file tests/overrides/catch-all/envfile --http-port 4321 --user "${IMAGE_USER}" --req-header-host domain1.com ${IMAGE_NAME}:${IMAGE_TAG}
+
 # CORS Tests.
 print_title "CORS Tests"
 ${BASE}/image_verify.sh --source tests/overrides/cors/expectations-filtered-php --env-file tests/overrides/cors/envfile-filtered --http-port 4321 --http-path index.php --user "${IMAGE_USER}" --cors-origin-host www.example.com ${IMAGE_NAME}:${IMAGE_TAG}
