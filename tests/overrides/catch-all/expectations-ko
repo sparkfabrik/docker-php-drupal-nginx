@@ -1,0 +1,4 @@
+HTTP_STATUS="404 Not Found"
+HEADER_RES_Server=nginx
+HEADER_RES_Content-Type=text/html
+HEADER_RES_X-catch-all=true
