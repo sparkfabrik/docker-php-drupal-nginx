@@ -1,0 +1,8 @@
+HTTP_STATUS="200 OK"
+HEADER_RES_Server=^nginx/[0-9]+\.[0-9]+\.[0-9]+$
+HEADER_RES_Content-Type=text/html;
+HEADER_RES_X-Powered-By=test-file-php
+HEADER_RES_X-Generator=test-file-php
+HEADER_RES_Permissions-Policy=test-file-php
+HEADER_RES_X-Drupal-Dynamic-Cache=test-file-php
+HEADER_RES_X-Drupal-Cache=test-file-php
