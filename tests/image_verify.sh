@@ -35,6 +35,8 @@ DOCKER_ENV=""
 ENV_LIST=""
 ENV_FILE=""
 
+MOUNT_LIST=""
+
 SOURCE_FILE=""
 
 CUR_TEST_VAR=""
@@ -58,6 +60,7 @@ printf "%-${PAD}s %s\n" "PROTO" "${DOCKER_TEST_PROTO}"
 printf "%-${PAD}s %s\n" "PATH" "${DOCKER_TEST_PATH}"
 printf "%-${PAD}s %s\n" "ENV_LIST" "${ENV_LIST}"
 printf "%-${PAD}s %s\n" "ENV_FILE" "${ENV_FILE}"
+printf "%-${PAD}s %s\n" "MOUNT_LIST" "${MOUNT_LIST}"
 printf "%-${PAD}s %s\n" "SOURCE_FILE" "${SOURCE_FILE}"
 printf "%-${PAD}s %s\n" "CORS_ORIGIN_HOST" "${CORS_ORIGIN_HOST}"
 printf "%-${PAD}s %s\n" "REQ_HEADER_HOST" "${REQ_HEADER_HOST}"
@@ -104,6 +107,7 @@ Options:
   --env,-e LIST                       Defines the comma separated environment variables to pass to the container
   --env-file PATH                     Defines a path for a file which includes all the ENV variables to pass to
                                       the container image (these variables will override the --env defined ones)
+  -v STRING                           Defines the mount path for the container
   --http-port N                       Defines the HTTP port, if missing the default 80 port is used
   --http-proto STRING [http|https]    Defines the HTTP protocol to use, if missing the default http is used
   --http-path STRING                  Defines the HTTP path to use
@@ -136,6 +140,7 @@ while [ -n "${1}" ]; do
     --dry-run) DRY_RUN=1; shift ;;
     --env|-e) if [ -n "${ENV_LIST}" ]; then ENV_LIST="${ENV_LIST},${2}"; else ENV_LIST="${2}"; fi; shift 2 ;;
     --env-file) ENV_FILE="${2}"; if [ ! -f "${ENV_FILE}" ]; then exit 3; fi; shift 2 ;;
+    -v) if [ -n "${MOUNT_LIST}" ]; then MOUNT_LIST="${MOUNT_LIST} -v ${2}"; else MOUNT_LIST="-v ${2}"; fi; shift 2 ;;
     --http-port) DOCKER_TEST_PORT="${2}"; shift 2 ;;
     --http-proto) DOCKER_TEST_PROTO="${2}"; shift 2 ;;
     --http-path) DOCKER_TEST_PATH="${2}"; shift 2 ;;
@@ -296,9 +301,9 @@ EXIT_STATUS=0
 
 process_docker_env
 if [ $DEBUG -eq 1 ]; then
-  echo "Docker run command: docker run --rm ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE}"
+  echo "Docker run command: docker run --rm ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${MOUNT_LIST} ${DOCKER_IMAGE}"
 fi
-CONTAINER_ID=$(docker run --rm ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE})
+CONTAINER_ID=$(docker run --rm ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${MOUNT_LIST} ${DOCKER_IMAGE})
 if [ $? -ne 0 ]; then
   echo "Failed to start the docker image"
   docker logs ${CONTAINER_ID}

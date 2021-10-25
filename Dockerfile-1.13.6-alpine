@@ -7,7 +7,7 @@ LABEL org.opencontainers.image.source https://github.com/sparkfabrik/docker-php-
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 COPY templates /templates
-COPY config/custom.conf /etc/nginx/conf.d/custom.conf
+COPY config/custom.conf /etc/nginx/conf.d/000-custom.conf
 
 RUN chmod +x /docker-entrypoint.sh && \
     chmod 775 /etc/nginx && \
