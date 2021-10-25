@@ -3,6 +3,5 @@ HEADER_RES_Server=^nginx$
 HEADER_RES_Content-Type=text/html;
 HEADER_RES_X-Powered-By=
 HEADER_RES_X-Generator=
-HEADER_RES_Permissions-Policy=
 HEADER_RES_X-Drupal-Dynamic-Cache=
 HEADER_RES_X-Drupal-Cache=

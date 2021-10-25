@@ -2,7 +2,6 @@
 
 header('X-Powered-By: test-file-php', true);
 header('X-Generator: test-file-php', true);
-header('Permissions-Policy: test-file-php', true);
 header('X-Drupal-Dynamic-Cache: test-file-php', true);
 header('X-Drupal-Cache: test-file-php', true);
 

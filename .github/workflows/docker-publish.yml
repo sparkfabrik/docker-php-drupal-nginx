@@ -36,20 +36,20 @@ jobs:
       - name: Build images
         run: |
           docker buildx build --load . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13 --build-arg user=root
-          docker buildx build --load . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17 --build-arg user=root
-          docker buildx build --load . --file $DOCKERFILE_1_21 --tag $IMAGE_NAME:$TAG_1_21 --build-arg user=root
           docker buildx build --load . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13_RL --build-arg user=1001
+          docker buildx build --load . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17 --build-arg user=root
           docker buildx build --load . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17_RL --build-arg user=1001
+          docker buildx build --load . --file $DOCKERFILE_1_21 --tag $IMAGE_NAME:$TAG_1_21 --build-arg user=root
           docker buildx build --load . --file $DOCKERFILE_1_21 --tag $IMAGE_NAME:$TAG_1_21_RL --build-arg user=1001
 
       - name: Test images
         run: |
           IMAGE_TAG=${TAG_1_13} ./tests/tests.sh
-          IMAGE_TAG=${TAG_1_13_RL} IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="4321" ./tests/tests.sh
+          IMAGE_TAG=${TAG_1_13_RL} IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
           IMAGE_TAG=${TAG_1_17} ./tests/tests.sh
-          IMAGE_TAG=${TAG_1_17_RL} IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="4321" ./tests/tests.sh
+          IMAGE_TAG=${TAG_1_17_RL} IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
           IMAGE_TAG=${TAG_1_21} ./tests/tests.sh
-          IMAGE_TAG=${TAG_1_21_RL} IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="4321" ./tests/tests.sh
+          IMAGE_TAG=${TAG_1_21_RL} IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
 
   deploy:
     needs: test
