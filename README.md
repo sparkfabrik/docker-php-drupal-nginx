@@ -72,6 +72,9 @@ The entrypoint file contains a list of environment variables that will be replac
 - `SITEMAP_URL`: the absolute URL of the website sitemap that should be written on _robots.txt_ file for SEO purposes (no default provided, the directive is added to the _robots.txt_ only when the variable exists)
 - `NGINX_CORS_ENABLED`: enable cors for `/` path and the caller origin header represented by `$http_origin` nginx variable (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin) (default: `0`)
 - `NGINX_CORS_DOMAINS`: a list of CORS enabled domains to activate cors just for the specified ones (no default provided)
+- `NGINX_REDIRECT_FROM_TO_WWW`: enable redirects from `www` domains to the domains without `www` and vice-versa
+- `NGINX_HIDE_DRUPAL_HEADERS` hide the drupal information from the response headers (default: the headers are visible)
+- `NGINX_HIDE_SENSITIVE_HEADERS` hide all the sensitive information from the response headers (default: the headers will be removed)
 
 ## Rootless feature
 
