@@ -20,6 +20,6 @@ build-rootless:
 
 test-rootless:
 	@chmod +x ./tests/tests.sh
-	@IMAGE_NAME=$(IMAGE_NAME) IMAGE_TAG=1.13.6-alpine.d8-rootless IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="4321" ./tests/tests.sh
-	@IMAGE_NAME=$(IMAGE_NAME) IMAGE_TAG=1.17.6-alpine.d8-rootless IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="4321" ./tests/tests.sh
-	@IMAGE_NAME=$(IMAGE_NAME) IMAGE_TAG=1.21.1-alpine.d8-rootless IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="4321" ./tests/tests.sh
+	@IMAGE_NAME=$(IMAGE_NAME) IMAGE_TAG=1.13.6-alpine.d8-rootless IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
+	@IMAGE_NAME=$(IMAGE_NAME) IMAGE_TAG=1.17.6-alpine.d8-rootless IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
+	@IMAGE_NAME=$(IMAGE_NAME) IMAGE_TAG=1.21.1-alpine.d8-rootless IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
