@@ -36,10 +36,10 @@ jobs:
       - name: Build images
         run: |
           docker buildx build --load . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13 --build-arg user=root
-          docker buildx build --load . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17 --build-arg user=root
-          docker buildx build --load . --file $DOCKERFILE_1_21 --tag $IMAGE_NAME:$TAG_1_21 --build-arg user=root
           docker buildx build --load . --file $DOCKERFILE_1_13 --tag $IMAGE_NAME:$TAG_1_13_RL --build-arg user=1001
+          docker buildx build --load . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17 --build-arg user=root
           docker buildx build --load . --file $DOCKERFILE_1_17 --tag $IMAGE_NAME:$TAG_1_17_RL --build-arg user=1001
+          docker buildx build --load . --file $DOCKERFILE_1_21 --tag $IMAGE_NAME:$TAG_1_21 --build-arg user=root
           docker buildx build --load . --file $DOCKERFILE_1_21 --tag $IMAGE_NAME:$TAG_1_21_RL --build-arg user=1001
 
       - name: Test images

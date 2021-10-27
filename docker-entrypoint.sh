@@ -43,6 +43,8 @@ export NGINX_CACHE_CONTROL_HEADER=${NGINX_CACHE_CONTROL_HEADER:-public,max-age=3
 export NGINX_GZIP_ENABLE=${NGINX_GZIP_ENABLE:-1}
 export SITEMAP_URL=${SITEMAP_URL}
 export NGINX_REDIRECT_FROM_TO_WWW=${NGINX_REDIRECT_FROM_TO_WWW:-0}
+export NGINX_HIDE_DRUPAL_HEADERS=${NGINX_HIDE_DRUPAL_HEADERS:-0}
+export NGINX_HIDE_SENSITIVE_HEADERS=${NGINX_HIDE_SENSITIVE_HEADERS:-1}
 
 # Activate CORS on php location using a fragment.
 export NGINX_CORS_ENABLED=${NGINX_CORS_ENABLED:-0}
@@ -140,6 +142,26 @@ for filename in /etc/nginx/conf.d/fragments/location/root/*.conf; do
 done
 
 envsubst '${NGINX_PHP_READ_TIMEOUT}' < /templates/fastcgi.conf > /etc/nginx/fastcgi.conf
+
+# Hide the Drupal specific headers
+if [ ${NGINX_HIDE_DRUPAL_HEADERS} -eq 1 ]; then
+  cat /templates/fastcgi-hide-drupal-headers.conf | tee -a /etc/nginx/fastcgi.conf >/dev/null
+fi
+
+# Hide the sensitive headers
+SERVER_TOKEN_TOGGLE="on"
+if [ ${NGINX_HIDE_SENSITIVE_HEADERS} -eq 1 ]; then
+  SERVER_TOKEN_TOGGLE="off"
+  cat /templates/fastcgi-hide-sensitive-headers.conf | tee -a /etc/nginx/fastcgi.conf >/dev/null
+fi
+export SERVER_TOKEN_TOGGLE
+cp /etc/nginx/conf.d/custom.conf /etc/nginx/conf.d/custom.conf.tmp
+envsubst '${SERVER_TOKEN_TOGGLE}' < /etc/nginx/conf.d/custom.conf.tmp > /etc/nginx/conf.d/custom.conf
+
+# Hide project specific headers
+if [ -r /templates/fastcgi-hide-additional-headers.conf ]; then
+  cat /templates/fastcgi-hide-additional-headers.conf | tee -a /etc/nginx/fastcgi.conf >/dev/null
+fi
 
 # Process redirect from-to-www configuration
 if [ ${NGINX_REDIRECT_FROM_TO_WWW} -eq 1 ] && [ "${NGINX_DEFAULT_SERVER_NAME}" != "_" ]; then
