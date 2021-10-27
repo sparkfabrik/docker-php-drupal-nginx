@@ -155,8 +155,8 @@ if [ ${NGINX_HIDE_SENSITIVE_HEADERS} -eq 1 ]; then
   cat /templates/fastcgi-hide-sensitive-headers.conf | tee -a /etc/nginx/fastcgi.conf >/dev/null
 fi
 export SERVER_TOKEN_TOGGLE
-cp /etc/nginx/conf.d/custom.conf /etc/nginx/conf.d/custom.conf.tmp
-envsubst '${SERVER_TOKEN_TOGGLE}' < /etc/nginx/conf.d/custom.conf.tmp > /etc/nginx/conf.d/custom.conf
+cp /etc/nginx/conf.d/000-custom.conf /etc/nginx/conf.d/000-custom.conf.tmp
+envsubst '${SERVER_TOKEN_TOGGLE}' < /etc/nginx/conf.d/000-custom.conf.tmp > /etc/nginx/conf.d/000-custom.conf
 
 # Hide project specific headers
 if [ -r /templates/fastcgi-hide-additional-headers.conf ]; then
