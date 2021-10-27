@@ -1,0 +1,3 @@
+~(?<proto>.*)://redirect-to-www-domain1-com.com(?<suffix>.*) $proto://www.domain1.com$suffix;
+~(?<proto>.*)://redirect-to-www-domain1-com.it(?<suffix>.*) $proto://www.domain1.com$suffix;
+~(?<proto>.*)://www.redirect-to-www-domain1-com.it(?<suffix>.*) $proto://www.domain1.com$suffix;

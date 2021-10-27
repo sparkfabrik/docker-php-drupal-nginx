@@ -20,8 +20,14 @@ ${BASE}/image_verify.sh --source tests/overrides/expectations --env-file tests/o
 
 # Catch all tests.
 print_title "Catch all tests"
-${BASE}/image_verify.sh --source tests/overrides/catch-all/expectations-ok --env-file tests/overrides/catch-all/envfile --http-port 4321 --user "${IMAGE_USER}" --req-header-host www.domain1.com ${IMAGE_NAME}:${IMAGE_TAG}
-${BASE}/image_verify.sh --source tests/overrides/catch-all/expectations-ko --env-file tests/overrides/catch-all/envfile --http-port 4321 --user "${IMAGE_USER}" --req-header-host domain1.com ${IMAGE_NAME}:${IMAGE_TAG}
+${BASE}/image_verify.sh --source tests/overrides/catch-all/expectations-ok --env-file tests/overrides/catch-all/envfile -v ${PWD}/tests/overrides/catch-all/redirects.map:/etc/nginx/conf.d/redirects.map --http-port 4321 --user "${IMAGE_USER}" --req-header-host www.domain1.com ${IMAGE_NAME}:${IMAGE_TAG}
+${BASE}/image_verify.sh --source tests/overrides/catch-all/expectations-ko --env-file tests/overrides/catch-all/envfile -v ${PWD}/tests/overrides/catch-all/redirects.map:/etc/nginx/conf.d/redirects.map --http-port 4321 --user "${IMAGE_USER}" --req-header-host domain1.com ${IMAGE_NAME}:${IMAGE_TAG}
+
+# Catch all tests with domain redirect.
+print_title "Catch all tests with domain redirect"
+${BASE}/image_verify.sh --source tests/overrides/catch-all/expectations-redirect --env-file tests/overrides/catch-all/envfile -v ${PWD}/tests/overrides/catch-all/redirects.map:/etc/nginx/conf.d/redirects.map --http-port 4321 --http-path test.html --user "${IMAGE_USER}" --req-header-host redirect-to-www-domain1-com.com ${IMAGE_NAME}:${IMAGE_TAG}
+${BASE}/image_verify.sh --source tests/overrides/catch-all/expectations-redirect --env-file tests/overrides/catch-all/envfile -v ${PWD}/tests/overrides/catch-all/redirects.map:/etc/nginx/conf.d/redirects.map --http-port 4321 --http-path test.html --user "${IMAGE_USER}" --req-header-host redirect-to-www-domain1-com.it ${IMAGE_NAME}:${IMAGE_TAG}
+${BASE}/image_verify.sh --source tests/overrides/catch-all/expectations-redirect --env-file tests/overrides/catch-all/envfile -v ${PWD}/tests/overrides/catch-all/redirects.map:/etc/nginx/conf.d/redirects.map --http-port 4321 --http-path test.html --user "${IMAGE_USER}" --req-header-host www.redirect-to-www-domain1-com.it ${IMAGE_NAME}:${IMAGE_TAG}
 
 # CORS Tests.
 print_title "CORS Tests"
