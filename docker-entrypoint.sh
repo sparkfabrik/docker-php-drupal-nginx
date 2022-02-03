@@ -38,7 +38,7 @@ export NGINX_SUBFOLDER=${NGINX_SUBFOLDER:-0}
 export NGINX_SUBFOLDER_ESCAPED=$(echo ${NGINX_SUBFOLDER} | sed 's/\//\\\//g')
 export NGINX_OSB_BUCKET=${NGINX_OSB_BUCKET}
 export NGINX_OSB_RESOLVER=${NGINX_OSB_RESOLVER:-8.8.8.8}
-export NGINX_OSB_HIDE_GOOGLE_HEADERS=${NGINX_OSB_HIDE_GOOGLE_HEADERS:-1}
+export HIDE_GOOGLE_GCS_HEADERS=${HIDE_GOOGLE_GCS_HEADERS:-1}
 export DRUPAL_PUBLIC_FILES_PATH=${DRUPAL_PUBLIC_FILES_PATH:-sites/default/files}
 export NGINX_CACHE_CONTROL_HEADER=${NGINX_CACHE_CONTROL_HEADER:-public,max-age=3600}
 export NGINX_GZIP_ENABLE=${NGINX_GZIP_ENABLE:-1}
@@ -67,7 +67,7 @@ if [ ! -z ${NGINX_OSB_BUCKET} ] && [ ! -f "/etc/nginx/conf.d/fragments/osb.conf"
   
   # If we want to suppress google headers coming from the google storage. 
   # We add more configuration on osb.conf file template before adding it on fragments . 
-  if [ ${NGINX_OSB_HIDE_GOOGLE_HEADERS} == 1 ]; then
+  if [ ${HIDE_GOOGLE_GCS_HEADERS} == 1 ]; then
     print "Hiding Google Storage headers"
     sed  -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /templates/fragments/osb.conf;
   fi
