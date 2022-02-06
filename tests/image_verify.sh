@@ -90,9 +90,9 @@ EOM
         PRINT_VAR="Body response"
       elif [ "${CUR_TEST_VAR}" = "BODY_REQ" ]; then
         PRINT_VAR="Body request"
-      elif [ "$(echo ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_RES_/ {print 1}')" = "1" ]; then
+      elif [ "$(echo "${CUR_TEST_VAR}" | awk '$0 ~ /^HEADER_RES_/ {print 1}')" = "1" ]; then
         PRINT_VAR="Header response $(echo "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_RES_/,""); print $0}')"
-      elif [ "$(echo ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_REQ_/ {print 1}')" = "1" ]; then
+      elif [ "$(echo "${CUR_TEST_VAR}" | awk '$0 ~ /^HEADER_REQ_/ {print 1}')" = "1" ]; then
         PRINT_VAR="Header request $(echo "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_REQ_/,""); print $0}')"
       fi
 
@@ -100,12 +100,12 @@ EOM
         printf "%-${PAD}s %s\n" "${PRINT_VAR}" "${CUR_TEST_VAL}"
       fi
     fi
-  done < ${SOURCE_FILE}
+  done < "${SOURCE_FILE}"
 }
 
 show_usage() {
   cat <<EOM
-Usage: $(basename $0) [OPTIONS] [EXPECTATIONS] <DOCKER IMAGE> [DOCKER TEST IMAGE]
+Usage: $(basename "$0") [OPTIONS] [EXPECTATIONS] <DOCKER IMAGE> [DOCKER TEST IMAGE]
 Options:
   --help,-h                           Print this help message
   --dry-run                           The script will only print the expectations
@@ -125,7 +125,7 @@ EOM
 }
 
 debug() {
-  if [ -n "${1:-}" ] && [ ${DEBUG:-0} -eq 1 ]; then
+  if [ -n "${1:-}" ] && [ "${DEBUG:-0}" -eq 1 ]; then
     echo "${1}"
   fi
 }
@@ -225,7 +225,7 @@ test_for_body_response() {
     test_eq "${DOCKER_TEST_BODY_RES}" "${CUR_TEST_VAL}" "Response Body"
   fi
 
-  if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
+  if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt "$EXIT_STATUS" ]; then
     EXIT_STATUS=$LOC_EXIT_STATUS
   fi
   
@@ -296,7 +296,7 @@ test_for_user() {
     TEST_USER=""
     LOC_EXIT_STATUS=0
     TEST_PASSED=1
-    CONTAINER_VAL=$(docker exec ${CONTAINER_ID} ash -c "whoami 2>&1 | sed 's/whoami: //'")
+    CONTAINER_VAL=$(docker exec "${CONTAINER_ID}" ash -c "whoami 2>&1 | sed 's/whoami: //'")
     test_eq "${CONTAINER_VAL}" "${CUR_TEST_VAL}" "User"
   fi
   
@@ -307,7 +307,7 @@ test_for_user() {
   return $LOC_EXIT_STATUS
 }
 
-if [ -z "$(docker images -q ${DOCKER_IMAGE})" ]; then
+if [ -z "$(docker images -q "${DOCKER_IMAGE}")" ]; then
   echo "Failed to find the docker image: ${DOCKER_IMAGE}"
   exit 7
 fi
@@ -326,17 +326,17 @@ if [ ${PHP_IS_NEEDED} -eq 1 ]; then
   # Start a container for php to use for FPM purpose
   debug "Start php-fpm container for test purpose"
   debug "Docker run command: docker run --rm ${DOCKER_ENV} -d -w /var/www/html -v ${PWD}/tests/html:/var/www/html ${DOCKER_PHP_IMAGE}"
-  PHP_CONTAINER_ID=$(docker run --rm ${DOCKER_ENV} -d -w /var/www/html -v ${PWD}/tests/html:/var/www/html ${DOCKER_PHP_IMAGE})
+  PHP_CONTAINER_ID=$(docker run --rm "${DOCKER_ENV}" -d -w /var/www/html -v "${PWD}"/tests/html:/var/www/html ${DOCKER_PHP_IMAGE})
   if [ $? -ne 0 ]; then
     echo "Failed to start the docker image (PHP)"
-    docker logs ${PHP_CONTAINER_ID}
+    docker logs "${PHP_CONTAINER_ID}"
     exit 9
   fi
   debug "Find the container IP address (PHP): docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${PHP_CONTAINER_ID}"
-  DOCKER_PHP_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${PHP_CONTAINER_ID})
+  DOCKER_PHP_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${PHP_CONTAINER_ID}")
   if [ $? -ne 0 ] || [ -z "${DOCKER_PHP_IP}" ]; then
     echo "Failed to discover the IP address of the docker image (PHP)"
-    docker logs ${PHP_CONTAINER_ID}
+    docker logs "${PHP_CONTAINER_ID}"
     exit 10
   fi
   # Add the PHP_HOST as additional env var to be used as php upstream
@@ -351,20 +351,20 @@ process_docker_env
 
 # Start the nginx container, the real one to test
 debug "Docker run command: docker run --rm ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE}"
-CONTAINER_ID=$(docker run --rm ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE})
+CONTAINER_ID=$(docker run --rm "${DOCKER_ENV}" -d -v "${PWD}"/tests/html:/var/www/html "${DOCKER_IMAGE}")
 if [ $? -ne 0 ]; then
   echo "Failed to start the docker image (NGINX)"
-  docker logs ${CONTAINER_ID}
+  docker logs "${CONTAINER_ID}"
   exit 9
 fi
 
 debug "I will perform the tests on the container with id: ${CONTAINER_ID}"
 
 debug "Find the container IP address: docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_ID}"
-DOCKER_TEST_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_ID})
+DOCKER_TEST_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${CONTAINER_ID}")
 if [ $? -ne 0 ] || [ -z "${DOCKER_TEST_IP}" ]; then
   echo "Failed to discover the IP address of the docker image"
-  docker logs ${CONTAINER_ID}
+  docker logs "${CONTAINER_ID}"
   exit 10
 fi
 
@@ -374,7 +374,7 @@ if [ -n "${REQ_HEADER_HOST}" ];then
 fi
 
 debug "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} origin:http://${CORS_ORIGIN_HOST} ${HTTPIE_HOST_HEADER}"
-DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} origin:http://${CORS_ORIGIN_HOST} ${HTTPIE_HOST_HEADER})
+DOCKER_TEST_OUTPUT=$(docker run --rm "${DOCKER_TEST_IMAGE}" --ignore-stdin -p HhBb GET "${DOCKER_TEST_PROTO}"://"${DOCKER_TEST_IP}":"${DOCKER_TEST_PORT}"/"${DOCKER_TEST_PATH}" origin:http://"${CORS_ORIGIN_HOST}" "${HTTPIE_HOST_HEADER}")
 if [ $? -ne 0 ]; then
   echo "Failed to get the data"
   exit 11
@@ -429,10 +429,10 @@ if [ -f "${SOURCE_FILE}" ]; then
         test_for_body_response
       elif [ "${CUR_TEST_VAR}" = "BODY_REQ" ]; then
         test_for_body_request
-      elif [ "$(echo ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_RES_/ {print 1}')" = "1" ]; then
+      elif [ "$(echo "${CUR_TEST_VAR}" | awk '$0 ~ /^HEADER_RES_/ {print 1}')" = "1" ]; then
         CUR_TEST_VAR=$(echo "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_RES_/,""); print $0}')
         test_for_header_response
-      elif [ "$(echo ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_REQ_/ {print 1}')" = "1" ]; then
+      elif [ "$(echo "${CUR_TEST_VAR}" | awk '$0 ~ /^HEADER_REQ_/ {print 1}')" = "1" ]; then
         CUR_TEST_VAR=$(echo "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_REQ_/,""); print $0}')
         test_for_header_request
       fi
@@ -440,7 +440,7 @@ if [ -f "${SOURCE_FILE}" ]; then
       debug "CUR_TEST_VAR: ${CUR_TEST_VAR}"
       debug "CUR_TEST_VAL: ${CUR_TEST_VAL}"
     fi
-  done < ${SOURCE_FILE}
+  done < "${SOURCE_FILE}"
 fi
 
 if [ -n "${TEST_USER}" ]; then
@@ -449,11 +449,11 @@ if [ -n "${TEST_USER}" ]; then
 fi
 
 debug "Docker stop command: docker stop ${CONTAINER_ID} >/dev/null 2>&1"
-docker stop ${CONTAINER_ID} >/dev/null 2>&1
+docker stop "${CONTAINER_ID}" >/dev/null 2>&1
 
 if [ ${PHP_IS_NEEDED} -eq 1 ]; then
   debug "Docker stop command (PHP): docker stop ${PHP_CONTAINER_ID} >/dev/null 2>&1"
-  docker stop ${PHP_CONTAINER_ID} >/dev/null 2>&1
+  docker stop "${PHP_CONTAINER_ID}" >/dev/null 2>&1
 fi
 
 if [ $EXIT_STATUS -eq 0 ]; then
