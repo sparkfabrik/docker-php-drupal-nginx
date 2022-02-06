@@ -161,7 +161,7 @@ while [ -n "${1}" ]; do
     --cors-origin-host) CORS_ORIGIN_HOST="${2}"; shift 2 ;;
     --req-header-host) REQ_HEADER_HOST="${2}"; shift 2 ;;
     --user|-u) TEST_USER="${2}"; shift 2 ;;
-    -*|--*=) echo "Error: Unsupported flag $1" >&2; exit 1 ;;
+    -*=) echo "Error: Unsupported flag $1" >&2; exit 1 ;;
     *) PARAMS="$PARAMS $1"; shift ;;
   esac
 done
@@ -202,11 +202,12 @@ test_eq() {
   return $LOC_EXIT_STATUS
 }
 test_rex () {
-  if [ $(echo "${1:-}" | grep -E "${2:-}" | wc -l) -ne 1 ]; then
+  # shellcheck disable=SC2126
+  if [ "$(echo "${1:-}" | grep -E "${2:-}" | wc -l)" -ne 1 ]; then
     TEST_PASSED=0
     LOC_EXIT_STATUS=6
   fi
-  
+
   [ -n "${3}" ] && TEST_FOR=" ${3}" || TEST_FOR=""
   [ $TEST_PASSED -eq 1 ] && TEST_PASSED_STR="\e[32mOK\e[39m" || TEST_PASSED_STR="\e[31mFAIL\e[39m"
   echo "Testing the expectation for${TEST_FOR}: ${TEST_PASSED_STR}"
@@ -228,7 +229,7 @@ test_for_body_response() {
   if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt "$EXIT_STATUS" ]; then
     EXIT_STATUS=$LOC_EXIT_STATUS
   fi
-  
+
   return $LOC_EXIT_STATUS
 }
 test_for_body_request() {
@@ -242,7 +243,7 @@ test_for_body_request() {
   if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
     EXIT_STATUS=$LOC_EXIT_STATUS
   fi
-  
+
   return $LOC_EXIT_STATUS
 }
 test_for_header_response() {
@@ -257,7 +258,7 @@ test_for_header_response() {
   if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
     EXIT_STATUS=$LOC_EXIT_STATUS
   fi
-  
+
   return $LOC_EXIT_STATUS
 }
 test_for_header_request() {
@@ -272,7 +273,7 @@ test_for_header_request() {
   if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
     EXIT_STATUS=$LOC_EXIT_STATUS
   fi
-  
+
   return $LOC_EXIT_STATUS
 }
 test_for_http_status() {
@@ -287,7 +288,7 @@ test_for_http_status() {
   if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
     EXIT_STATUS=$LOC_EXIT_STATUS
   fi
-  
+
   return $LOC_EXIT_STATUS
 }
 test_for_user() {
@@ -299,7 +300,7 @@ test_for_user() {
     CONTAINER_VAL=$(docker exec "${CONTAINER_ID}" ash -c "whoami 2>&1 | sed 's/whoami: //'")
     test_eq "${CONTAINER_VAL}" "${CUR_TEST_VAL}" "User"
   fi
-  
+
   if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
       EXIT_STATUS=$LOC_EXIT_STATUS
   fi
@@ -326,7 +327,9 @@ if [ ${PHP_IS_NEEDED} -eq 1 ]; then
   # Start a container for php to use for FPM purpose
   debug "Start php-fpm container for test purpose"
   debug "Docker run command: docker run --rm ${DOCKER_ENV} -d -w /var/www/html -v ${PWD}/tests/html:/var/www/html ${DOCKER_PHP_IMAGE}"
-  PHP_CONTAINER_ID=$(docker run --rm "${DOCKER_ENV}" -d -w /var/www/html -v "${PWD}"/tests/html:/var/www/html ${DOCKER_PHP_IMAGE})
+  # shellcheck disable=SC2086
+  PHP_CONTAINER_ID=$(docker run --rm ${DOCKER_ENV} -d -w /var/www/html -v "${PWD}"/tests/html:/var/www/html ${DOCKER_PHP_IMAGE})
+  # shellcheck disable=SC2181
   if [ $? -ne 0 ]; then
     echo "Failed to start the docker image (PHP)"
     docker logs "${PHP_CONTAINER_ID}"
@@ -334,6 +337,7 @@ if [ ${PHP_IS_NEEDED} -eq 1 ]; then
   fi
   debug "Find the container IP address (PHP): docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${PHP_CONTAINER_ID}"
   DOCKER_PHP_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${PHP_CONTAINER_ID}")
+  # shellcheck disable=SC2181
   if [ $? -ne 0 ] || [ -z "${DOCKER_PHP_IP}" ]; then
     echo "Failed to discover the IP address of the docker image (PHP)"
     docker logs "${PHP_CONTAINER_ID}"
@@ -351,7 +355,9 @@ process_docker_env
 
 # Start the nginx container, the real one to test
 debug "Docker run command: docker run --rm ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE}"
-CONTAINER_ID=$(docker run --rm "${DOCKER_ENV}" -d -v "${PWD}"/tests/html:/var/www/html "${DOCKER_IMAGE}")
+# shellcheck disable=SC2086
+CONTAINER_ID=$(docker run --rm ${DOCKER_ENV} -d -v "${PWD}"/tests/html:/var/www/html "${DOCKER_IMAGE}")
+# shellcheck disable=SC2181
 if [ $? -ne 0 ]; then
   echo "Failed to start the docker image (NGINX)"
   docker logs "${CONTAINER_ID}"
@@ -362,6 +368,7 @@ debug "I will perform the tests on the container with id: ${CONTAINER_ID}"
 
 debug "Find the container IP address: docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_ID}"
 DOCKER_TEST_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${CONTAINER_ID}")
+# shellcheck disable=SC2181
 if [ $? -ne 0 ] || [ -z "${DOCKER_TEST_IP}" ]; then
   echo "Failed to discover the IP address of the docker image"
   docker logs "${CONTAINER_ID}"
@@ -375,6 +382,7 @@ fi
 
 debug "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} origin:http://${CORS_ORIGIN_HOST} ${HTTPIE_HOST_HEADER}"
 DOCKER_TEST_OUTPUT=$(docker run --rm "${DOCKER_TEST_IMAGE}" --ignore-stdin -p HhBb GET "${DOCKER_TEST_PROTO}"://"${DOCKER_TEST_IP}":"${DOCKER_TEST_PORT}"/"${DOCKER_TEST_PATH}" origin:http://"${CORS_ORIGIN_HOST}" "${HTTPIE_HOST_HEADER}")
+# shellcheck disable=SC2181
 if [ $? -ne 0 ]; then
   echo "Failed to get the data"
   exit 11
@@ -401,6 +409,7 @@ for line in $(echo "${DOCKER_TEST_OUTPUT}" | tr -d '\r' | sed 's/^$/'${SEP}'/g')
     fi
 
     if [ -n "${LINE_VAL}" ]; then
+      # shellcheck disable=SC2004
       LINE_POS=$(($LINE_POS + 1))
       LINE_VAL=""
     else
