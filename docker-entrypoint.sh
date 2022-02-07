@@ -64,13 +64,6 @@ fi
 # If we are using an Object Storage Bucket, we add a custom location file.
 # We also check if a file with the same name does not exist, to prevent the override.
 if [ ! -z ${NGINX_OSB_BUCKET} ] && [ ! -f "/etc/nginx/conf.d/fragments/osb.conf" ]; then
-  
-  # If we want to suppress google headers coming from the google storage. 
-  # We add more configuration on osb.conf file template before adding it on fragments . 
-  if [ ${HIDE_GOOGLE_GCS_HEADERS} == 1 ]; then
-    print "Hiding Google Storage headers"
-    sed  -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /templates/fragments/osb.conf;
-  fi
   mkdir -p /etc/nginx/conf.d/fragments
   # We add osb.conf to fragments if Nginx is configured to use a bucket.
   # Env subst will be done later on all fragments files.
@@ -85,6 +78,12 @@ if [ ! -z ${NGINX_OSB_BUCKET} ] && [ ! -f "/etc/nginx/conf.d/fragments/osb.conf"
       print "Activating unfiltered OSB CORS"
       envsubst '${NGINX_CACHE_CONTROL_HEADER}' < /templates/fragments/location/osb/cors-unfiltered.conf > /etc/nginx/conf.d/fragments/location/osb/cors.conf
     fi
+  fi
+  # If we want to suppress google headers coming from the google storage. 
+  # We add more configuration on osb.conf file template before adding it on fragments . 
+  if [ ${HIDE_GOOGLE_GCS_HEADERS} == 1 ]; then
+    print "Hiding Google Storage headers"
+    sed  -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /etc/nginx/conf.d/fragments/osb.conf;
   fi
 fi
 
