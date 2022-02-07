@@ -132,7 +132,7 @@ debug() {
 
 process_docker_env() {
   if [ -n "${ENV_LIST}" ]; then
-    DOCKER_ENV="-e $(echo -e "${ENV_LIST}" | sed 's/,/ -e /g;')"
+    DOCKER_ENV="-e $(echo "${ENV_LIST}" | sed 's/,/ -e /g;')"
   fi
   if [ -n "${ENV_FILE}" ]; then
     if [ -f "${ENV_FILE}" ]; then
