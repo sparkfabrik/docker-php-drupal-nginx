@@ -14,7 +14,7 @@
 # 10:   failed to discover the IP address of the docker image
 # 11:   Failed to get the data
 #####################
-
+set -x
 DEBUG=${DEBUG:-1}
 DRY_RUN=0
 
