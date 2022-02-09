@@ -75,6 +75,7 @@ The entrypoint file contains a list of environment variables that will be replac
 - `NGINX_REDIRECT_FROM_TO_WWW`: enable redirects from `www` domains to the domains without `www` and vice-versa
 - `NGINX_HIDE_DRUPAL_HEADERS` hide the drupal information from the response headers (default: the headers are visible)
 - `NGINX_HIDE_SENSITIVE_HEADERS` hide all the sensitive information from the response headers (default: the headers will be removed)
+- `HIDE_GOOGLE_GCS_HEADERS` hides google response headers coming from the GCS object storage bucket (default: the headers are hidden)
 
 ## Rootless feature
 

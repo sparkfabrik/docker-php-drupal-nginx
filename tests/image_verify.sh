@@ -15,7 +15,7 @@
 # 11:   Failed to get the data
 #####################
 
-DEBUG=${DEBUG:-0}
+DEBUG=${DEBUG:-1}
 DRY_RUN=0
 
 PHP_IS_NEEDED=${PHP_IS_NEEDED:-0}
@@ -79,9 +79,9 @@ cat <<EOM
 ### Defined variables ###
 EOM
   while read -r line || [ -n "$line" ]; do
-    if [ "${line}" = "$(echo "${line}" | tr -d '#')" ]; then
-      CUR_TEST_VAR=$(echo "${line}" | awk '{split($0,a,"="); print a[1]}')
-      CUR_TEST_VAL=$(echo "${line}" | awk '{gsub(/"/,""); split($0,a,"="); print a[2]}')
+    if [ "${line}" = "$(echo -e "${line}" | tr -d '#')" ]; then
+      CUR_TEST_VAR=$(echo -e "${line}" | awk '{split($0,a,"="); print a[1]}')
+      CUR_TEST_VAL=$(echo -e "${line}" | awk '{gsub(/"/,""); split($0,a,"="); print a[2]}')
 
       PRINT_VAR=""
       if [ "${CUR_TEST_VAR}" = "HTTP_STATUS" ]; then
@@ -90,10 +90,10 @@ EOM
         PRINT_VAR="Body response"
       elif [ "${CUR_TEST_VAR}" = "BODY_REQ" ]; then
         PRINT_VAR="Body request"
-      elif [ "$(echo ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_RES_/ {print 1}')" = "1" ]; then
-        PRINT_VAR="Header response $(echo "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_RES_/,""); print $0}')"
-      elif [ "$(echo ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_REQ_/ {print 1}')" = "1" ]; then
-        PRINT_VAR="Header request $(echo "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_REQ_/,""); print $0}')"
+      elif [ "$(echo -e ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_RES_/ {print 1}')" = "1" ]; then
+        PRINT_VAR="Header response $(echo -e "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_RES_/,""); print $0}')"
+      elif [ "$(echo -e ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_REQ_/ {print 1}')" = "1" ]; then
+        PRINT_VAR="Header request $(echo -e "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_REQ_/,""); print $0}')"
       fi
 
       if [ -n "${PRINT_VAR}" ]; then
@@ -126,7 +126,7 @@ EOM
 
 debug() {
   if [ -n "${1:-}" ] && [ ${DEBUG:-0} -eq 1 ]; then
-    echo "${1}"
+    echo -e "${1}"
   fi
 }
 
@@ -138,7 +138,7 @@ process_docker_env() {
     if [ -f "${ENV_FILE}" ]; then
       DOCKER_ENV="${DOCKER_ENV} --env-file ${ENV_FILE}"
     else
-      echo "Failed to process the env configuration"
+      echo -e "Failed to process the env configuration"
       exit 3
     fi
   fi
@@ -161,7 +161,7 @@ while [ -n "${1}" ]; do
     --cors-origin-host) CORS_ORIGIN_HOST="${2}"; shift 2 ;;
     --req-header-host) REQ_HEADER_HOST="${2}"; shift 2 ;;
     --user|-u) TEST_USER="${2}"; shift 2 ;;
-    -*|--*=) echo "Error: Unsupported flag $1" >&2; exit 1 ;;
+    -*|--*=) echo -e "Error: Unsupported flag $1" >&2; exit 1 ;;
     *) PARAMS="$PARAMS $1"; shift ;;
   esac
 done
@@ -169,7 +169,7 @@ done
 eval set -- "$PARAMS"
 
 if [ -z "${1}" ]; then
-  echo "Error: you must provide the docker image to test"
+  echo -e "Error: you must provide the docker image to test"
   exit 4
 fi
 
@@ -193,26 +193,26 @@ test_eq() {
 
   [ -n "${3}" ] && TEST_FOR=" ${3}" || TEST_FOR=""
   [ $TEST_PASSED -eq 1 ] && TEST_PASSED_STR="\e[32mOK\e[39m" || TEST_PASSED_STR="\e[31mFAIL\e[39m"
-  echo "Testing the expectation for${TEST_FOR}: ${TEST_PASSED_STR}"
+  echo -e "Testing the expectation for${TEST_FOR}: ${TEST_PASSED_STR}"
   if [ $TEST_PASSED -ne 1 ]; then
-    echo "Expected: ${2} - Actual value: ${1}"
-    echo ""
+    echo -e "Expected: ${2} - Actual value: ${1}"
+    echo -e ""
   fi
 
   return $LOC_EXIT_STATUS
 }
 test_rex () {
-  if [ $(echo "${1:-}" | grep -E "${2:-}" | wc -l) -ne 1 ]; then
+  if [ $(echo -e "${1:-}" | grep -E "${2:-}" | wc -l) -ne 1 ]; then
     TEST_PASSED=0
     LOC_EXIT_STATUS=6
   fi
-  
+
   [ -n "${3}" ] && TEST_FOR=" ${3}" || TEST_FOR=""
   [ $TEST_PASSED -eq 1 ] && TEST_PASSED_STR="\e[32mOK\e[39m" || TEST_PASSED_STR="\e[31mFAIL\e[39m"
-  echo "Testing the expectation for${TEST_FOR}: ${TEST_PASSED_STR}"
+  echo -e "Testing the expectation for${TEST_FOR}: ${TEST_PASSED_STR}"
   if [ $TEST_PASSED -ne 1 ]; then
-    echo "Expected: ${2} - Actual value: ${1}"
-    echo ""
+    echo -e -r "Expected: ${2} - Actual value: ${1}"
+    echo -e ""
   fi
 
   return $LOC_EXIT_STATUS
@@ -228,7 +228,7 @@ test_for_body_response() {
   if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
     EXIT_STATUS=$LOC_EXIT_STATUS
   fi
-  
+
   return $LOC_EXIT_STATUS
 }
 test_for_body_request() {
@@ -242,7 +242,7 @@ test_for_body_request() {
   if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
     EXIT_STATUS=$LOC_EXIT_STATUS
   fi
-  
+
   return $LOC_EXIT_STATUS
 }
 test_for_header_response() {
@@ -250,14 +250,14 @@ test_for_header_response() {
   if [ -n "${CUR_TEST_VAR}" ]; then
     LOC_EXIT_STATUS=0
     TEST_PASSED=1
-    CONTAINER_VAL=$(echo "${DOCKER_TEST_HEADER_RES}" | grep "^${CUR_TEST_VAR}: " | awk '{gsub(/\r/,""); print $2}')
+    CONTAINER_VAL=$(echo -e "${DOCKER_TEST_HEADER_RES}" | grep "^${CUR_TEST_VAR}: " | awk '{gsub(/\r/,""); print $2}')
     test_rex "${CONTAINER_VAL}" "${CUR_TEST_VAL:-}" "Response Header ${CUR_TEST_VAR}"
   fi
 
   if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
     EXIT_STATUS=$LOC_EXIT_STATUS
   fi
-  
+
   return $LOC_EXIT_STATUS
 }
 test_for_header_request() {
@@ -265,14 +265,14 @@ test_for_header_request() {
   if [ -n "${CUR_TEST_VAR}" ]; then
     LOC_EXIT_STATUS=0
     TEST_PASSED=1
-    CONTAINER_VAL=$(echo "${DOCKER_TEST_HEADER_REQ}" | grep "^${CUR_TEST_VAR}: " | awk '{gsub(/\r/,""); print $2}')
+    CONTAINER_VAL=$(echo -e "${DOCKER_TEST_HEADER_REQ}" | grep "^${CUR_TEST_VAR}: " | awk '{gsub(/\r/,""); print $2}')
     test_eq "${CONTAINER_VAL}" "${CUR_TEST_VAL:-}" "Request Header ${CUR_TEST_VAR}"
   fi
 
   if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
     EXIT_STATUS=$LOC_EXIT_STATUS
   fi
-  
+
   return $LOC_EXIT_STATUS
 }
 test_for_http_status() {
@@ -280,14 +280,14 @@ test_for_http_status() {
   if [ -n "${CUR_TEST_VAL}" ]; then
     LOC_EXIT_STATUS=0
     TEST_PASSED=1
-    CONTAINER_VAL=$(echo "${DOCKER_TEST_HEADER_RES}" | grep "^HTTP/1.1 ${CUR_TEST_VAL}" | awk '{gsub(/\r/,""); print $0}')
+    CONTAINER_VAL=$(echo -e "${DOCKER_TEST_HEADER_RES}" | grep "^HTTP/1.1 ${CUR_TEST_VAL}" | awk '{gsub(/\r/,""); print $0}')
     test_eq "${CONTAINER_VAL}" "HTTP/1.1 ${CUR_TEST_VAL}" "HTTP Status Header"
   fi
 
   if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
     EXIT_STATUS=$LOC_EXIT_STATUS
   fi
-  
+
   return $LOC_EXIT_STATUS
 }
 test_for_user() {
@@ -299,7 +299,7 @@ test_for_user() {
     CONTAINER_VAL=$(docker exec ${CONTAINER_ID} ash -c "whoami 2>&1 | sed 's/whoami: //'")
     test_eq "${CONTAINER_VAL}" "${CUR_TEST_VAL}" "User"
   fi
-  
+
   if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
       EXIT_STATUS=$LOC_EXIT_STATUS
   fi
@@ -308,17 +308,17 @@ test_for_user() {
 }
 
 if [ -z "$(docker images -q ${DOCKER_IMAGE})" ]; then
-  echo "Failed to find the docker image: ${DOCKER_IMAGE}"
+  echo -e "Failed to find the docker image: ${DOCKER_IMAGE}"
   exit 7
 fi
 
 # The test image is a public image, so the test below is not needed
 # if [ -z "$(docker images -q ${DOCKER_TEST_IMAGE})" ]; then
-#   echo "Failed to find the docker test image: ${DOCKER_TEST_IMAGE}"
+#   echo -e "Failed to find the docker test image: ${DOCKER_TEST_IMAGE}"
 #   exit 8
 # fi
 
-echo "Start testing process on image: ${DOCKER_IMAGE} ..."
+echo -e "Start testing process on image: ${DOCKER_IMAGE} ..."
 
 EXIT_STATUS=0
 
@@ -328,14 +328,14 @@ if [ ${PHP_IS_NEEDED} -eq 1 ]; then
   debug "Docker run command: docker run --rm ${DOCKER_ENV} -d -w /var/www/html -v ${PWD}/tests/html:/var/www/html ${DOCKER_PHP_IMAGE}"
   PHP_CONTAINER_ID=$(docker run --rm ${DOCKER_ENV} -d -w /var/www/html -v ${PWD}/tests/html:/var/www/html ${DOCKER_PHP_IMAGE})
   if [ $? -ne 0 ]; then
-    echo "Failed to start the docker image (PHP)"
+    echo -e "Failed to start the docker image (PHP)"
     docker logs ${PHP_CONTAINER_ID}
     exit 9
   fi
   debug "Find the container IP address (PHP): docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${PHP_CONTAINER_ID}"
   DOCKER_PHP_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${PHP_CONTAINER_ID})
   if [ $? -ne 0 ] || [ -z "${DOCKER_PHP_IP}" ]; then
-    echo "Failed to discover the IP address of the docker image (PHP)"
+    echo -e "Failed to discover the IP address of the docker image (PHP)"
     docker logs ${PHP_CONTAINER_ID}
     exit 10
   fi
@@ -353,7 +353,7 @@ process_docker_env
 debug "Docker run command: docker run --rm ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE}"
 CONTAINER_ID=$(docker run --rm ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE})
 if [ $? -ne 0 ]; then
-  echo "Failed to start the docker image (NGINX)"
+  echo -e "Failed to start the docker image (NGINX)"
   docker logs ${CONTAINER_ID}
   exit 9
 fi
@@ -363,7 +363,7 @@ debug "I will perform the tests on the container with id: ${CONTAINER_ID}"
 debug "Find the container IP address: docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_ID}"
 DOCKER_TEST_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_ID})
 if [ $? -ne 0 ] || [ -z "${DOCKER_TEST_IP}" ]; then
-  echo "Failed to discover the IP address of the docker image"
+  echo -e "Failed to discover the IP address of the docker image"
   docker logs ${CONTAINER_ID}
   exit 10
 fi
@@ -376,7 +376,7 @@ fi
 debug "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} origin:http://${CORS_ORIGIN_HOST} ${HTTPIE_HOST_HEADER}"
 DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} origin:http://${CORS_ORIGIN_HOST} ${HTTPIE_HOST_HEADER})
 if [ $? -ne 0 ]; then
-  echo "Failed to get the data"
+  echo -e "Failed to get the data"
   exit 11
 fi
 
@@ -386,7 +386,7 @@ SEP="~~~~~~~"
 EMPTY_PLACEHOLDER="~~~EMPTY~~~"
 OLD_IFS=$IFS
 IFS="$(printf '\nx')" && IFS="${IFS%x}";
-for line in $(echo "${DOCKER_TEST_OUTPUT}" | tr -d '\r' | sed 's/^$/'${SEP}'/g'); do
+for line in $(echo -e "${DOCKER_TEST_OUTPUT}" | tr -d '\r' | sed 's/^$/'${SEP}'/g'); do
   if [ "${line}" = "${SEP}" ]; then
 
     [ "${LINE_VAL}" = "${EMPTY_PLACEHOLDER}\n" ] && SAVE_LINE_VAL="\n" || SAVE_LINE_VAL="${LINE_VAL}"
@@ -418,9 +418,9 @@ IFS=$OLD_IFS
 
 if [ -f "${SOURCE_FILE}" ]; then
   while read -r line || [ -n "$line" ]; do
-    if [ "${line}" = "$(echo "${line}" | tr -d '#')" ]; then
-      CUR_TEST_VAR=$(echo "${line}" | awk '{split($0,a,"="); print a[1]}')
-      CUR_TEST_VAL=$(echo "${line}" | awk '{gsub(/"/,""); split($0,a,"="); print a[2]}')
+    if [ "${line}" = "$(echo -e "${line}" | tr -d '#')" ]; then
+      CUR_TEST_VAR=$(echo -e "${line}" | awk '{split($0,a,"="); print a[1]}')
+      CUR_TEST_VAL=$(echo -e "${line}" | awk '{gsub(/"/,""); split($0,a,"="); print a[2]}')
 
       PRINT_VAR=""
       if [ "${CUR_TEST_VAR}" = "HTTP_STATUS" ]; then
@@ -429,11 +429,11 @@ if [ -f "${SOURCE_FILE}" ]; then
         test_for_body_response
       elif [ "${CUR_TEST_VAR}" = "BODY_REQ" ]; then
         test_for_body_request
-      elif [ "$(echo ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_RES_/ {print 1}')" = "1" ]; then
-        CUR_TEST_VAR=$(echo "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_RES_/,""); print $0}')
+      elif [ "$(echo -e ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_RES_/ {print 1}')" = "1" ]; then
+        CUR_TEST_VAR=$(echo -e "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_RES_/,""); print $0}')
         test_for_header_response
-      elif [ "$(echo ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_REQ_/ {print 1}')" = "1" ]; then
-        CUR_TEST_VAR=$(echo "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_REQ_/,""); print $0}')
+      elif [ "$(echo -e ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_REQ_/ {print 1}')" = "1" ]; then
+        CUR_TEST_VAR=$(echo -e "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_REQ_/,""); print $0}')
         test_for_header_request
       fi
 
@@ -457,9 +457,9 @@ if [ ${PHP_IS_NEEDED} -eq 1 ]; then
 fi
 
 if [ $EXIT_STATUS -eq 0 ]; then
-  echo "\e[32mSUCCESS, all tests passed\e[39m"
+  echo -e "\e[32mSUCCESS, all tests passed\e[39m"
 else
-  echo "\e[31mFAIL, some tests failed\e[39m"
+  echo -e "\e[31mFAIL, some tests failed\e[39m"
 fi
 
 debug "HEADER REQ"
