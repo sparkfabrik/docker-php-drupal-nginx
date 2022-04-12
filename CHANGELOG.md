@@ -21,4 +21,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- New `NGINX_XFRAME_OPTION_ENABLE` environment variable to enable X-Frame Options header to indicate whether or not a browser should be allowed to render a page in a frame, iframe, embed, object (default: the header is enabled at "SAMEORIGIN" value)
+- New `NGINX_XFRAME_OPTION_ENABLE` environment variable to enable X-Frame Options header to indicate whether or not a browser should be allowed to render a page in a frame, iframe, embed, object (default: the header is enabled with "SAMEORIGIN" value)
