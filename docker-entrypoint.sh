@@ -46,6 +46,7 @@ export SITEMAP_URL=${SITEMAP_URL}
 export NGINX_REDIRECT_FROM_TO_WWW=${NGINX_REDIRECT_FROM_TO_WWW:-0}
 export NGINX_HIDE_DRUPAL_HEADERS=${NGINX_HIDE_DRUPAL_HEADERS:-0}
 export NGINX_HIDE_SENSITIVE_HEADERS=${NGINX_HIDE_SENSITIVE_HEADERS:-1}
+export NGINX_XFRAME_OPTION_ENABLE=${NGINX_XFRAME_OPTION_ENABLE:-1}
 
 # Activate CORS on php location using a fragment.
 export NGINX_CORS_ENABLED=${NGINX_CORS_ENABLED:-0}
@@ -85,6 +86,13 @@ if [ ! -z ${NGINX_OSB_BUCKET} ] && [ ! -f "/etc/nginx/conf.d/fragments/osb.conf"
     print "Hiding Google Storage headers"
     sed  -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /etc/nginx/conf.d/fragments/osb.conf;
   fi
+fi
+
+# If we want to enable X-Frame Options header to indicate whether or not a browser should be allowed 
+# to render a page in a <frame>, <iframe>, <embed> or <object>
+if [ ${NGINX_XFRAME_OPTION_ENABLE} == 1 ]; then
+  print "Enabling X-frame-Options Header"
+  sed  -e '/#securityheaders/r /templates/security-headers.conf' -i /templates/default.conf;
 fi
 
 if [ ${NGINX_HTTPSREDIRECT} == 1 ]; then

@@ -74,3 +74,11 @@ ${BASE}/image_verify.sh --php-needed --source tests/overrides/headers/expectatio
 # Show sensitive headers
 print_title "Show sensitive headers (sensitive: yes - drupal: yes)"
 ${BASE}/image_verify.sh --php-needed --source tests/overrides/headers/expectations-show-sensitive --env-file tests/overrides/headers/envfile-show-sensitive --http-port ${OVERRIDES_NGINX_PORT} --http-path index.php --user "${IMAGE_USER}" ${IMAGE_NAME}:${IMAGE_TAG}
+
+# X-Frame-Options header enabled 
+print_title "X-Frame-Options header Enabled (Default Value - SAMEORIGIN)"
+${BASE}/image_verify.sh --php-needed --source tests/overrides/headers/expectations-x-frame-options --env-file tests/overrides/headers/envfile-default --http-port ${OVERRIDES_NGINX_PORT} --http-path index.php --user "${IMAGE_USER}" ${IMAGE_NAME}:${IMAGE_TAG}
+
+# X-Frame-Options header Disabled 
+print_title "X-Frame-Options header Disabled"
+${BASE}/image_verify.sh --php-needed --source tests/overrides/headers/expectations-default --env-file tests/overrides/headers/envfile-x-frame-options-disabled --http-port ${OVERRIDES_NGINX_PORT} --http-path index.php --user "${IMAGE_USER}" ${IMAGE_NAME}:${IMAGE_TAG}
