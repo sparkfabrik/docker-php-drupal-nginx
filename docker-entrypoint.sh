@@ -46,6 +46,8 @@ export SITEMAP_URL=${SITEMAP_URL}
 export NGINX_REDIRECT_FROM_TO_WWW=${NGINX_REDIRECT_FROM_TO_WWW:-0}
 export NGINX_HIDE_DRUPAL_HEADERS=${NGINX_HIDE_DRUPAL_HEADERS:-0}
 export NGINX_HIDE_SENSITIVE_HEADERS=${NGINX_HIDE_SENSITIVE_HEADERS:-1}
+export NGINX_XFRAME_OPTION_ENABLE=${NGINX_XFRAME_OPTION_ENABLE:-1}
+export NGINX_XFRAME_OPTION_VALUE=${NGINX_XFRAME_OPTION_VALUE:-SAMEORIGIN}
 
 # Activate CORS on php location using a fragment.
 export NGINX_CORS_ENABLED=${NGINX_CORS_ENABLED:-0}
@@ -87,6 +89,13 @@ if [ ! -z ${NGINX_OSB_BUCKET} ] && [ ! -f "/etc/nginx/conf.d/fragments/osb.conf"
   fi
 fi
 
+# If we want to enable X-Frame Options header to indicate whether or not a browser should be allowed 
+# to render a page in a <frame>, <iframe>, <embed> or <object>
+if [ ${NGINX_XFRAME_OPTION_ENABLE} == 1 ]; then
+  print "Enabling X-frame-Options Header"
+  sed  -e '/#securityheaders/r /templates/security-headers.conf' -i /templates/default.conf;
+fi
+
 if [ ${NGINX_HTTPSREDIRECT} == 1 ]; then
   print "Enabling HTTPS redirect"
   sed  -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/default.conf;
@@ -98,10 +107,10 @@ if [ ${NGINX_GZIP_ENABLE} == 1 ]; then
   cp /templates/gzip.conf /etc/nginx/conf.d/gzip.conf
 fi
 
-envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
+envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_XFRAME_OPTION_VALUE}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
 
 if [ ${NGINX_SUBFOLDER} != 0 ]; then
-  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED}' < /templates/subfolder.conf > /etc/nginx/conf.d/default.conf
+  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_XFRAME_OPTION_VALUE}' < /templates/subfolder.conf > /etc/nginx/conf.d/default.conf
 fi
 
 # Handle robots.txt and sitemap directive
