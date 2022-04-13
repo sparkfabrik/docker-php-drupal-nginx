@@ -91,7 +91,7 @@ fi
 
 # If we want to enable X-Frame Options header to indicate whether or not a browser should be allowed 
 # to render a page in a <frame>, <iframe>, <embed> or <object>
-if [ ${NGINX_XFRAME_OPTION_ENABLE} == 1 ]; then
+if [ ${NGINX_XFRAME_OPTION_ENABLE} == 0 ]; then
   print "Enabling X-frame-Options Header"
   sed  -e '/#securityheaders/r /templates/security-headers.conf' -i /templates/default.conf;
 fi
