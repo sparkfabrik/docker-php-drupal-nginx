@@ -5,3 +5,4 @@ HEADER_RES_X-Powered-By=
 HEADER_RES_X-Generator=
 HEADER_RES_X-Drupal-Dynamic-Cache=
 HEADER_RES_X-Drupal-Cache=
+HEADER_RES_X-Drupal-Route-Normalizer=
