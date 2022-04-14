@@ -77,8 +77,8 @@ ${BASE}/image_verify.sh --php-needed --source tests/overrides/headers/expectatio
 
 # X-Frame-Options header enabled 
 print_title "X-Frame-Options header Enabled (Default Value - SAMEORIGIN)"
-${BASE}/image_verify.sh --php-needed --source tests/overrides/headers/expectations-x-frame-options --env-file tests/overrides/headers/envfile-default --http-port ${OVERRIDES_NGINX_PORT} --http-path index.php --user "${IMAGE_USER}" ${IMAGE_NAME}:${IMAGE_TAG}
+${BASE}/image_verify.sh --php-needed --source tests/overrides/headers/expectations-x-frame-options-enabled --env-file tests/overrides/headers/envfile-x-frame-options-enabled --http-port ${OVERRIDES_NGINX_PORT} --http-path index.php --user "${IMAGE_USER}" ${IMAGE_NAME}:${IMAGE_TAG}
 
 # X-Frame-Options header Disabled 
 print_title "X-Frame-Options header Disabled"
-${BASE}/image_verify.sh --php-needed --source tests/overrides/headers/expectations-default --env-file tests/overrides/headers/envfile-x-frame-options-disabled --http-port ${OVERRIDES_NGINX_PORT} --http-path index.php --user "${IMAGE_USER}" ${IMAGE_NAME}:${IMAGE_TAG}
+${BASE}/image_verify.sh --php-needed --source tests/overrides/headers/expectations-x-frame-options-disabled --env-file tests/overrides/headers/envfile-x-frame-options-enabled --http-port ${OVERRIDES_NGINX_PORT} --http-path index.php --user "${IMAGE_USER}" ${IMAGE_NAME}:${IMAGE_TAG}

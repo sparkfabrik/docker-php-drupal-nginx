@@ -211,7 +211,7 @@ test_rex () {
   [ $TEST_PASSED -eq 1 ] && TEST_PASSED_STR="\e[32mOK\e[39m" || TEST_PASSED_STR="\e[31mFAIL\e[39m"
   echo -e "Testing the expectation for${TEST_FOR}: ${TEST_PASSED_STR}"
   if [ $TEST_PASSED -ne 1 ]; then
-    echo -e -r "Expected: ${2} - Actual value: ${1}"
+    echo -e "Expected: ${2} - Actual value: ${1}"
     echo -e ""
   fi
 
