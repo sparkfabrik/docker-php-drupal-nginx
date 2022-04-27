@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC3037
 
 ### Exit status ###
 # 0:    success
@@ -15,10 +16,10 @@
 # 11:   Failed to get the data
 #####################
 
-DEBUG=${DEBUG:-1}
+DEBUG="${DEBUG:-1}"
 DRY_RUN=0
 
-PHP_IS_NEEDED=${PHP_IS_NEEDED:-0}
+PHP_IS_NEEDED="${PHP_IS_NEEDED:-0}"
 DOCKER_PHP_IMAGE="php:7.4-fpm"
 DOCKER_PHP_IP=""
 
@@ -26,7 +27,7 @@ DOCKER_TEST_IMAGE="alpine/httpie:latest"
 DOCKER_TEST_IP=""
 DOCKER_TEST_PORT=80
 DOCKER_TEST_PROTO="http"
-DOCKER_TEST_PATH=${DOCKER_TEST_PATH:-test.html}
+DOCKER_TEST_PATH="${DOCKER_TEST_PATH:-test.html}"
 
 DOCKER_TEST_OUTPUT=""
 DOCKER_TEST_HEADER_REQ=""
@@ -90,9 +91,9 @@ EOM
         PRINT_VAR="Body response"
       elif [ "${CUR_TEST_VAR}" = "BODY_REQ" ]; then
         PRINT_VAR="Body request"
-      elif [ "$(echo -e ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_RES_/ {print 1}')" = "1" ]; then
+      elif [ "$(echo -e "${CUR_TEST_VAR}" | awk '$0 ~ /^HEADER_RES_/ {print 1}')" = "1" ]; then
         PRINT_VAR="Header response $(echo -e "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_RES_/,""); print $0}')"
-      elif [ "$(echo -e ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_REQ_/ {print 1}')" = "1" ]; then
+      elif [ "$(echo -e "${CUR_TEST_VAR}" | awk '$0 ~ /^HEADER_REQ_/ {print 1}')" = "1" ]; then
         PRINT_VAR="Header request $(echo -e "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_REQ_/,""); print $0}')"
       fi
 
@@ -100,12 +101,12 @@ EOM
         printf "%-${PAD}s %s\n" "${PRINT_VAR}" "${CUR_TEST_VAL}"
       fi
     fi
-  done < ${SOURCE_FILE}
+  done < "${SOURCE_FILE}"
 }
 
 show_usage() {
   cat <<EOM
-Usage: $(basename $0) [OPTIONS] [EXPECTATIONS] <DOCKER IMAGE> [DOCKER TEST IMAGE]
+Usage: $(basename "$0") [OPTIONS] [EXPECTATIONS] <DOCKER IMAGE> [DOCKER TEST IMAGE]
 Options:
   --help,-h                           Print this help message
   --dry-run                           The script will only print the expectations
@@ -125,7 +126,7 @@ EOM
 }
 
 debug() {
-  if [ -n "${1:-}" ] && [ ${DEBUG:-0} -eq 1 ]; then
+  if [ -n "${1:-}" ] && [ "${DEBUG:-0}" -eq 1 ]; then
     echo -e "${1}"
   fi
 }
@@ -161,7 +162,7 @@ while [ -n "${1}" ]; do
     --cors-origin-host) CORS_ORIGIN_HOST="${2}"; shift 2 ;;
     --req-header-host) REQ_HEADER_HOST="${2}"; shift 2 ;;
     --user|-u) TEST_USER="${2}"; shift 2 ;;
-    -*|--*=) echo -e "Error: Unsupported flag $1" >&2; exit 1 ;;
+    --*=|-*) echo -e "Error: Unsupported flag $1" >&2; exit 1 ;;
     *) PARAMS="$PARAMS $1"; shift ;;
   esac
 done
@@ -202,7 +203,8 @@ test_eq() {
   return $LOC_EXIT_STATUS
 }
 test_rex () {
-  if [ $(echo -e "${1:-}" | grep -E "${2:-}" | wc -l) -ne 1 ]; then
+  # shellcheck disable=SC2126
+  if [ "$(echo -e "${1:-}" | grep -E "${2:-}" | wc -l)" -ne 1 ]; then
     TEST_PASSED=0
     LOC_EXIT_STATUS=6
   fi
@@ -225,7 +227,7 @@ test_for_body_response() {
     test_eq "${DOCKER_TEST_BODY_RES}" "${CUR_TEST_VAL}" "Response Body"
   fi
 
-  if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
+  if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt "$EXIT_STATUS" ]; then
     EXIT_STATUS=$LOC_EXIT_STATUS
   fi
 
@@ -296,7 +298,7 @@ test_for_user() {
     TEST_USER=""
     LOC_EXIT_STATUS=0
     TEST_PASSED=1
-    CONTAINER_VAL=$(docker exec ${CONTAINER_ID} ash -c "whoami 2>&1 | sed 's/whoami: //'")
+    CONTAINER_VAL=$(docker exec "${CONTAINER_ID}" ash -c "whoami 2>&1 | sed 's/whoami: //'")
     test_eq "${CONTAINER_VAL}" "${CUR_TEST_VAL}" "User"
   fi
 
@@ -307,7 +309,7 @@ test_for_user() {
   return $LOC_EXIT_STATUS
 }
 
-if [ -z "$(docker images -q ${DOCKER_IMAGE})" ]; then
+if [ -z "$(docker images -q "${DOCKER_IMAGE}")" ]; then
   echo -e "Failed to find the docker image: ${DOCKER_IMAGE}"
   exit 7
 fi
@@ -326,17 +328,20 @@ if [ ${PHP_IS_NEEDED} -eq 1 ]; then
   # Start a container for php to use for FPM purpose
   debug "Start php-fpm container for test purpose"
   debug "Docker run command: docker run --rm ${DOCKER_ENV} -d -w /var/www/html -v ${PWD}/tests/html:/var/www/html ${DOCKER_PHP_IMAGE}"
+  # shellcheck disable=SC2086
   PHP_CONTAINER_ID=$(docker run --rm ${DOCKER_ENV} -d -w /var/www/html -v ${PWD}/tests/html:/var/www/html ${DOCKER_PHP_IMAGE})
+  #shellcheck disable=SC2181
   if [ $? -ne 0 ]; then
     echo -e "Failed to start the docker image (PHP)"
-    docker logs ${PHP_CONTAINER_ID}
+    docker logs "${PHP_CONTAINER_ID}"
     exit 9
   fi
   debug "Find the container IP address (PHP): docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${PHP_CONTAINER_ID}"
-  DOCKER_PHP_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${PHP_CONTAINER_ID})
+  DOCKER_PHP_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${PHP_CONTAINER_ID}")
+  #shellcheck disable=SC2181
   if [ $? -ne 0 ] || [ -z "${DOCKER_PHP_IP}" ]; then
     echo -e "Failed to discover the IP address of the docker image (PHP)"
-    docker logs ${PHP_CONTAINER_ID}
+    docker logs "${PHP_CONTAINER_ID}"
     exit 10
   fi
   # Add the PHP_HOST as additional env var to be used as php upstream
@@ -351,20 +356,23 @@ process_docker_env
 
 # Start the nginx container, the real one to test
 debug "Docker run command: docker run --rm ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE}"
+# shellcheck disable=SC2086
 CONTAINER_ID=$(docker run --rm ${DOCKER_ENV} -d -v ${PWD}/tests/html:/var/www/html ${DOCKER_IMAGE})
+#shellcheck disable=SC2181
 if [ $? -ne 0 ]; then
   echo -e "Failed to start the docker image (NGINX)"
-  docker logs ${CONTAINER_ID}
+  docker logs "${CONTAINER_ID}"
   exit 9
 fi
 
 debug "I will perform the tests on the container with id: ${CONTAINER_ID}"
 
 debug "Find the container IP address: docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_ID}"
-DOCKER_TEST_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_ID})
+DOCKER_TEST_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${CONTAINER_ID}")
+#shellcheck disable=SC2181
 if [ $? -ne 0 ] || [ -z "${DOCKER_TEST_IP}" ]; then
   echo -e "Failed to discover the IP address of the docker image"
-  docker logs ${CONTAINER_ID}
+  docker logs "${CONTAINER_ID}"
   exit 10
 fi
 
@@ -374,7 +382,9 @@ if [ -n "${REQ_HEADER_HOST}" ];then
 fi
 
 debug "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} origin:http://${CORS_ORIGIN_HOST} ${HTTPIE_HOST_HEADER}"
-DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} origin:http://${CORS_ORIGIN_HOST} ${HTTPIE_HOST_HEADER})
+# shellcheck disable=SC2086
+DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET "${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH}" origin:http://${CORS_ORIGIN_HOST} ${HTTPIE_HOST_HEADER})
+#shellcheck disable=SC2181
 if [ $? -ne 0 ]; then
   echo -e "Failed to get the data"
   exit 11
@@ -401,6 +411,7 @@ for line in $(echo -e "${DOCKER_TEST_OUTPUT}" | tr -d '\r' | sed 's/^$/'${SEP}'/
     fi
 
     if [ -n "${LINE_VAL}" ]; then
+      #shellcheck disable=SC2004
       LINE_POS=$(($LINE_POS + 1))
       LINE_VAL=""
     else
@@ -429,10 +440,10 @@ if [ -f "${SOURCE_FILE}" ]; then
         test_for_body_response
       elif [ "${CUR_TEST_VAR}" = "BODY_REQ" ]; then
         test_for_body_request
-      elif [ "$(echo -e ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_RES_/ {print 1}')" = "1" ]; then
+      elif [ "$(echo -e "${CUR_TEST_VAR}" | awk '$0 ~ /^HEADER_RES_/ {print 1}')" = "1" ]; then
         CUR_TEST_VAR=$(echo -e "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_RES_/,""); print $0}')
         test_for_header_response
-      elif [ "$(echo -e ${CUR_TEST_VAR} | awk '$0 ~ /^HEADER_REQ_/ {print 1}')" = "1" ]; then
+      elif [ "$(echo -e "${CUR_TEST_VAR}" | awk '$0 ~ /^HEADER_REQ_/ {print 1}')" = "1" ]; then
         CUR_TEST_VAR=$(echo -e "${CUR_TEST_VAR}" | awk '{gsub(/^HEADER_REQ_/,""); print $0}')
         test_for_header_request
       fi
@@ -440,7 +451,7 @@ if [ -f "${SOURCE_FILE}" ]; then
       debug "CUR_TEST_VAR: ${CUR_TEST_VAR}"
       debug "CUR_TEST_VAL: ${CUR_TEST_VAL}"
     fi
-  done < ${SOURCE_FILE}
+  done < "${SOURCE_FILE}"
 fi
 
 if [ -n "${TEST_USER}" ]; then
@@ -449,11 +460,11 @@ if [ -n "${TEST_USER}" ]; then
 fi
 
 debug "Docker stop command: docker stop ${CONTAINER_ID} >/dev/null 2>&1"
-docker stop ${CONTAINER_ID} >/dev/null 2>&1
+docker stop "${CONTAINER_ID}" >/dev/null 2>&1
 
 if [ ${PHP_IS_NEEDED} -eq 1 ]; then
   debug "Docker stop command (PHP): docker stop ${PHP_CONTAINER_ID} >/dev/null 2>&1"
-  docker stop ${PHP_CONTAINER_ID} >/dev/null 2>&1
+  docker stop "${PHP_CONTAINER_ID}" >/dev/null 2>&1
 fi
 
 if [ $EXIT_STATUS -eq 0 ]; then
