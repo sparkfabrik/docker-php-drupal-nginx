@@ -71,7 +71,7 @@ print_title "Only default headers (sensitive: no - drupal: yes)"
 
 # Hide drupal headers
 print_title "Hide drupal headers (sensitive: no - drupal: no)"
-"${BASE}/image_verify.sh" --php-needed --source tests/overrides/headers/expectations-hide-drupal --env-file tests/overrides/headers/envfile-hide-drupal --http-port "${OVERRIDES_NGINX_PORT}" --http-path index.php --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+"${BASE}/image_verify.sh" --php-needed --source tests/overrides/headers/expectations-show-drupal --env-file tests/overrides/headers/envfile-show-drupal --http-port "${OVERRIDES_NGINX_PORT}" --http-path index.php --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
 
 # Show sensitive headers
 print_title "Show sensitive headers (sensitive: yes - drupal: yes)"
@@ -80,7 +80,3 @@ print_title "Show sensitive headers (sensitive: yes - drupal: yes)"
 # X-Frame-Options header enabled 
 print_title "X-Frame-Options header Enabled (Default Value - SAMEORIGIN)"
 "${BASE}/image_verify.sh" --php-needed --source tests/overrides/headers/expectations-x-frame-options-enabled --env-file tests/overrides/headers/envfile-x-frame-options-enabled --http-port "${OVERRIDES_NGINX_PORT}" --http-path index.php --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
-
-# X-Frame-Options header Disabled 
-print_title "X-Frame-Options header Disabled"
-"${BASE}/image_verify.sh" --php-needed --source tests/overrides/headers/expectations-x-frame-options-disabled --env-file tests/overrides/headers/envfile-x-frame-options-enabled --http-port "${OVERRIDES_NGINX_PORT}" --http-path index.php --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"

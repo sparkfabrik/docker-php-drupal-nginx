@@ -48,7 +48,7 @@ export NGINX_CACHE_CONTROL_HEADER="${NGINX_CACHE_CONTROL_HEADER:-public,max-age=
 export NGINX_GZIP_ENABLE="${NGINX_GZIP_ENABLE:-1}"
 export SITEMAP_URL="${SITEMAP_URL}"
 export NGINX_REDIRECT_FROM_TO_WWW="${NGINX_REDIRECT_FROM_TO_WWW:-0}"
-export NGINX_HIDE_DRUPAL_HEADERS="${NGINX_HIDE_DRUPAL_HEADERS:-0}"
+export NGINX_HIDE_DRUPAL_HEADERS="${NGINX_HIDE_DRUPAL_HEADERS:-1}"
 export NGINX_HIDE_SENSITIVE_HEADERS="${NGINX_HIDE_SENSITIVE_HEADERS:-1}"
 export NGINX_XFRAME_OPTION_ENABLE="${NGINX_XFRAME_OPTION_ENABLE:-0}"
 export NGINX_XFRAME_OPTION_VALUE="${NGINX_XFRAME_OPTION_VALUE:-SAMEORIGIN}"
@@ -92,7 +92,7 @@ if [ -n "${NGINX_OSB_BUCKET}" ] && [ ! -f "/etc/nginx/conf.d/fragments/osb.conf"
   # We add more configuration on osb.conf file template before adding it on fragments . 
   if [ "${HIDE_GOOGLE_GCS_HEADERS}" = 1 ]; then
     print "Hiding Google Storage headers"
-    sed  -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /etc/nginx/conf.d/fragments/osb.conf;
+    sed -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /etc/nginx/conf.d/fragments/osb.conf;
   fi
 fi
 
@@ -100,13 +100,13 @@ fi
 # to render a page in a <frame>, <iframe>, <embed> or <object>
 if [ "${NGINX_XFRAME_OPTION_ENABLE}" = 1 ]; then
   print "Enabling X-frame-Options Header"
-  sed  -e '/#securityheaders/r /templates/security-headers.conf' -i /templates/default.conf;
+  sed -e '/#securityheaders/r /templates/security-headers.conf' -i /templates/default.conf;
 fi
 
 if [ "${NGINX_HTTPSREDIRECT}" = 1 ]; then
   print "Enabling HTTPS redirect"
-  sed  -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/default.conf;
-  sed  -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/subfolder.conf;
+  sed -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/default.conf;
+  sed -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/subfolder.conf;
 fi
 
 if [ "${NGINX_GZIP_ENABLE}" = 1 ]; then
