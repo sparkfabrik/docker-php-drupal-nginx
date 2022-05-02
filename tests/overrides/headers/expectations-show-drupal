@@ -1,6 +1,6 @@
 HTTP_STATUS="200 OK"
 HEADER_RES_Server=^nginx$
-HEADER_RES_Content-Type=text/html;
+HEADER_RES_Content-Type=text/html
 HEADER_RES_X-Powered-By=
 HEADER_RES_X-Generator=
 HEADER_RES_X-Drupal-Dynamic-Cache=test-file-php
