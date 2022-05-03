@@ -7,4 +7,4 @@ HEADER_RES_X-Drupal-Dynamic-Cache=
 HEADER_RES_X-Drupal-Cache=
 HEADER_RES_X-Drupal-Route-Normalizer=
 HEADER_RES_X-Frame-Options=
-HEADER_RES_Strict-Transport-Security=
+HEADER_RES_Strict-Transport-Security="max-age=63072000; includeSubDomains; preload"

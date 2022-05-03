@@ -81,8 +81,8 @@ cat <<EOM
 EOM
   while read -r line || [ -n "$line" ]; do
     if [ "${line}" = "$(echo -e "${line}" | tr -d '#')" ]; then
-      CUR_TEST_VAR=$(echo -e "${line}" | awk '{split($0,a,"="); print a[1]}')
-      CUR_TEST_VAL=$(echo -e "${line}" | awk '{gsub(/"/,""); split($0,a,"="); print a[2]}')
+      CUR_TEST_VAR=$(echo -e "${line}" | awk -F'=' '{print $1}')
+      CUR_TEST_VAL=$(echo -e "${line}" | awk -F'=' '{for (i=2; i<NF; i++) printf $i "="; print $NF;}' | sed 's/"//g')
 
       PRINT_VAR=""
       if [ "${CUR_TEST_VAR}" = "HTTP_STATUS" ]; then
@@ -252,7 +252,7 @@ test_for_header_response() {
   if [ -n "${CUR_TEST_VAR}" ]; then
     LOC_EXIT_STATUS=0
     TEST_PASSED=1
-    CONTAINER_VAL=$(echo -e "${DOCKER_TEST_HEADER_RES}" | grep "^${CUR_TEST_VAR}: " | awk '{gsub(/\r/,""); print $2}')
+    CONTAINER_VAL=$(echo -e "${DOCKER_TEST_HEADER_RES}" | grep "^${CUR_TEST_VAR}: " | awk -F': ' '{gsub(/\r/,""); print $2}')
     test_rex "${CONTAINER_VAL}" "${CUR_TEST_VAL:-}" "Response Header ${CUR_TEST_VAR}"
   fi
 
@@ -267,7 +267,7 @@ test_for_header_request() {
   if [ -n "${CUR_TEST_VAR}" ]; then
     LOC_EXIT_STATUS=0
     TEST_PASSED=1
-    CONTAINER_VAL=$(echo -e "${DOCKER_TEST_HEADER_REQ}" | grep "^${CUR_TEST_VAR}: " | awk '{gsub(/\r/,""); print $2}')
+    CONTAINER_VAL=$(echo -e "${DOCKER_TEST_HEADER_REQ}" | grep "^${CUR_TEST_VAR}: " | awk -F': ' '{gsub(/\r/,""); print $2}')
     test_eq "${CONTAINER_VAL}" "${CUR_TEST_VAL:-}" "Request Header ${CUR_TEST_VAR}"
   fi
 
@@ -282,7 +282,7 @@ test_for_http_status() {
   if [ -n "${CUR_TEST_VAL}" ]; then
     LOC_EXIT_STATUS=0
     TEST_PASSED=1
-    CONTAINER_VAL=$(echo -e "${DOCKER_TEST_HEADER_RES}" | grep "^HTTP/1.1 ${CUR_TEST_VAL}" | awk '{gsub(/\r/,""); print $0}')
+    CONTAINER_VAL=$(echo -e "${DOCKER_TEST_HEADER_RES}" | grep "^HTTP/1.1 ${CUR_TEST_VAL}" | awk -F': ' '{gsub(/\r/,""); print $0}')
     test_eq "${CONTAINER_VAL}" "HTTP/1.1 ${CUR_TEST_VAL}" "HTTP Status Header"
   fi
 
@@ -430,8 +430,8 @@ IFS=$OLD_IFS
 if [ -f "${SOURCE_FILE}" ]; then
   while read -r line || [ -n "$line" ]; do
     if [ "${line}" = "$(echo -e "${line}" | tr -d '#')" ]; then
-      CUR_TEST_VAR=$(echo -e "${line}" | awk '{split($0,a,"="); print a[1]}')
-      CUR_TEST_VAL=$(echo -e "${line}" | awk '{gsub(/"/,""); split($0,a,"="); print a[2]}')
+      CUR_TEST_VAR=$(echo -e "${line}" | awk -F'=' '{print $1}')
+      CUR_TEST_VAL=$(echo -e "${line}" | awk -F'=' '{for (i=2; i<NF; i++) printf $i "="; print $NF;}' | sed 's/"//g')
 
       PRINT_VAR=""
       if [ "${CUR_TEST_VAR}" = "HTTP_STATUS" ]; then

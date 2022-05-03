@@ -80,3 +80,15 @@ print_title "Show sensitive headers (sensitive: yes - drupal: yes)"
 # X-Frame-Options header enabled 
 print_title "X-Frame-Options header Enabled (Default Value - SAMEORIGIN)"
 "${BASE}/image_verify.sh" --php-needed --source tests/overrides/headers/expectations-x-frame-options-enabled --env-file tests/overrides/headers/envfile-x-frame-options-enabled --http-port "${OVERRIDES_NGINX_PORT}" --http-path index.php --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+# HSTS enabled
+print_title "HSTS header Enabled"
+"${BASE}/image_verify.sh" --source tests/overrides/headers/expectations-hsts-enabled --env-file tests/overrides/headers/envfile-hsts-enabled --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+# HSTS no preload (max-age=63072000; includeSubDomains)
+print_title "HSTS header Enabled without preload"
+"${BASE}/image_verify.sh" --source tests/overrides/headers/expectations-hsts-no-preload --env-file tests/overrides/headers/envfile-hsts-no-preload --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+# HSTS no subdomains (max-age=63072000; preload)
+print_title "HSTS header Enabled without includeSubDomains"
+"${BASE}/image_verify.sh" --source tests/overrides/headers/expectations-hsts-no-subdomains --env-file tests/overrides/headers/envfile-hsts-no-subdomains --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"

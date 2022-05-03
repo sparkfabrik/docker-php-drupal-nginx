@@ -76,6 +76,9 @@ The entrypoint file contains a list of environment variables that will be replac
 - `NGINX_HIDE_DRUPAL_HEADERS` hide the drupal information from the response headers (default: the headers are visible)
 - `NGINX_HIDE_SENSITIVE_HEADERS` hide all the sensitive information from the response headers (default: the headers will be removed)
 - `HIDE_GOOGLE_GCS_HEADERS` hides google response headers coming from the GCS object storage bucket (default: the headers are hidden)
+- `NGINX_HSTS_MAX_AGE` enables the `Strict-Transport-Security` header and defines the `max-age` value (default: 0)
+- `NGINX_HSTS_INCLUDE_SUBDOMAINS` enables the `includeSubDomains` feature in the `Strict-Transport-Security` header (default: 1)
+- `NGINX_HSTS_PRELOAD` enables the `preload` feature in the `Strict-Transport-Security` header (default: 1)
 
 ## Rootless feature
 

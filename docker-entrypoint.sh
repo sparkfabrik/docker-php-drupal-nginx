@@ -68,6 +68,24 @@ if [ "${NGINX_CORS_ENABLED}" = 1 ]; then
   fi
 fi
 
+# Activate HSTS header (default: off)
+# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+# The suggested value for the max-age is 63072000 (2 years).
+export NGINX_HSTS_MAX_AGE="${NGINX_HSTS_MAX_AGE:-0}"
+export NGINX_HSTS_INCLUDE_SUBDOMAINS="${NGINX_HSTS_INCLUDE_SUBDOMAINS:-1}"
+export NGINX_HSTS_PRELOAD="${NGINX_HSTS_PRELOAD:-1}"
+if [ "${NGINX_HSTS_MAX_AGE}" -gt 0 ]; then
+  export NGINX_HSTS_HEADER="max-age=${NGINX_HSTS_MAX_AGE}"
+  if [ "${NGINX_HSTS_INCLUDE_SUBDOMAINS}" -eq 1 ]; then
+    export NGINX_HSTS_HEADER="${NGINX_HSTS_HEADER}; includeSubDomains"
+  fi
+  if [ "${NGINX_HSTS_PRELOAD}" -eq 1 ]; then
+    export NGINX_HSTS_HEADER="${NGINX_HSTS_HEADER}; preload"
+  fi
+  # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
+  envsubst '${NGINX_HSTS_HEADER}' < /templates/fragments/hsts.conf > /etc/nginx/conf.d/fragments/hsts.conf
+fi
+
 # If we are using an Object Storage Bucket, we add a custom location file.
 # We also check if a file with the same name does not exist, to prevent the override.
 if [ -n "${NGINX_OSB_BUCKET}" ] && [ ! -f "/etc/nginx/conf.d/fragments/osb.conf" ]; then
