@@ -1,0 +1,8 @@
+# The line below will send a redirect only for .com TLD to a new path 
+www.example.com/my-awesome-path https://www.example.com/my-new-awesome-path;
+# The line below will send a redirect only for .co.uk TLD to a new path
+www.example.co.uk/my-awesome-path https://www.example.co.uk/my-new-awesome-path;
+# The line below will send a redirect for all other domains to the .it TLD and to a new path
+/my-awesome-path https://www.example.it/another-awesome-path;
+# The line below will send a redirect only for .fr TLD to a new path
+www.example.fr/my-awesome-path https://www.example.fr/my-new-awesome-path;
