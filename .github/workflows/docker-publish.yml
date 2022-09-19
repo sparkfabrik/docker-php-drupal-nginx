@@ -13,15 +13,18 @@ env:
   DOCKERFILE_1_17_6: Dockerfile-1.17.6-alpine
   DOCKERFILE_1_21_1: Dockerfile-1.21.1-alpine
   DOCKERFILE_1_21_6: Dockerfile-1.21.6-alpine
+  DOCKERFILE_1_23_1: Dockerfile-1.23.1-alpine
   TAG_1_13_6: 1.13.6-alpine.d8
   TAG_1_17_6: 1.17.6-alpine.d8
   TAG_1_21_1: 1.21.1-alpine.d8
   TAG_1_21_6: 1.21.6-alpine.d8
+  TAG_1_23_1: 1.23.1-alpine.d8
   TAG_D8: d8
   TAG_1_13_6_RL: 1.13.6-alpine.d8-rootless
   TAG_1_17_6_RL: 1.17.6-alpine.d8-rootless
   TAG_1_21_1_RL: 1.21.1-alpine.d8-rootless
   TAG_1_21_6_RL: 1.21.6-alpine.d8-rootless
+  TAG_1_23_1_RL: 1.21.6-alpine.d8-rootless
   TAG_D8_RL: d8-rootless
 
 jobs:
@@ -46,6 +49,8 @@ jobs:
           docker buildx build --load . --file $DOCKERFILE_1_21_1 --tag $IMAGE_NAME:$TAG_1_21_1_RL --build-arg user=1001
           docker buildx build --load . --file $DOCKERFILE_1_21_6 --tag $IMAGE_NAME:$TAG_1_21_6 --build-arg user=root
           docker buildx build --load . --file $DOCKERFILE_1_21_6 --tag $IMAGE_NAME:$TAG_1_21_6_RL --build-arg user=1001
+          docker buildx build --load . --file $DOCKERFILE_1_23_1 --tag $IMAGE_NAME:$TAG_1_23_1 --build-arg user=root
+          docker buildx build --load . --file $DOCKERFILE_1_23_1 --tag $IMAGE_NAME:$TAG_1_23_1_RL --build-arg user=1001
 
       - name: Test images
         shell: bash {0}
@@ -58,6 +63,8 @@ jobs:
           IMAGE_TAG=${TAG_1_21_1_RL} IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
           IMAGE_TAG=${TAG_1_21_6} ./tests/tests.sh
           IMAGE_TAG=${TAG_1_21_6_RL} IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
+          IMAGE_TAG=${TAG_1_23_1} ./tests/tests.sh
+          IMAGE_TAG=${TAG_1_23_1_RL} IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
 
   deploy:
     needs: test
@@ -99,6 +106,10 @@ jobs:
             --file $DOCKERFILE_1_21_6 \
             --tag $IMAGE_ID:$TAG_1_21_6 \
             --build-arg user=root
+          docker buildx build --push . --platform "linux/amd64,linux/arm64" \
+            --file $DOCKERFILE_1_23_1 \
+            --tag $IMAGE_ID:$TAG_1_23_1 \
+            --build-arg user=root
           docker buildx build --push . --platform "linux/amd64" \
             --file $DOCKERFILE_1_13_6 \
             --tag $IMAGE_ID:$TAG_1_13_6_RL \
@@ -113,6 +124,6 @@ jobs:
             --tag $IMAGE_ID:$TAG_1_21_1_RL \
             --build-arg user=1001
           docker buildx build --push . --platform "linux/amd64,linux/arm64" \
-            --file $DOCKERFILE_1_21_6 \
-            --tag $IMAGE_ID:$TAG_1_21_6_RL \
+            --file $DOCKERFILE_1_23_1 \
+            --tag $IMAGE_ID:$TAG_1_23_1_RL \
             --build-arg user=1001
