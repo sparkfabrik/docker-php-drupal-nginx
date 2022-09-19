@@ -78,11 +78,13 @@ jobs:
           # Change all uppercase to lowercase.
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           echo IMAGE_ID=$IMAGE_ID
-          docker buildx build --push . --platform "linux/amd64,linux/arm64" \
+          PLATFORMS="${{ matrix.version == '1.13.6-alpine' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}"
+          echo PLATFORMS=$PLATFORMS
+          docker buildx build --push . --platform "$PLATFORMS" \
             --file Dockerfile-${{ matrix.version }} \
             --tag $IMAGE_ID:${{ matrix.version }}.d8 \
             --build-arg user=root
-          docker buildx build --push . --platform "linux/amd64,linux/arm64" \
+          docker buildx build --push . --platform "$PLATFORMS" \
             --file Dockerfile-${{ matrix.version }} \
             --tag $IMAGE_ID:${{ matrix.version }}.d8-rootless \
             --build-arg user=1001
