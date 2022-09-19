@@ -87,3 +87,62 @@ If you provide a non-root user the container will drop its privileges targeting 
 We have inserted the specific make targets with dedicated image suffix tags (`-rootless`) for these flavours.
 
 You can find some more information [here](https://docs.bitnami.com/tutorials/work-with-non-root-containers/).
+
+## redirects.map file
+
+You can use the file `/etc/nginx/conf.d/redirects.map` to specify the static redirection that you want to manage. Each line of the file represents a key-value pair used to verify the current request and to send the 301 header and the corresponding new `Location` to the client. The file structure is:
+
+```bash
+<key to match> <new localtion>;
+```
+
+The key to match, or the left side of the file, could be the host and path (e.g.: `www.example.com/my-awesome-path`) or only the path (e.g.: `/my-awesome-path`). In the case of the same path, the more detailed rule will be applied (host and path), **ignoring the order in the file**. **ATTENTION**: as described, the left part of the file is treated as a key, so you must avoid any conflict.
+
+### Example
+
+Here you can find an example for the `redirects.map` file:
+
+```bash
+# The line below will send a redirect only for .com TLD to a new path
+www.example.com/my-awesome-path https://www.example.com/my-new-awesome-path;
+# The line below will send a redirect only for .co.uk TLD to a new path
+www.example.co.uk/my-awesome-path https://www.example.co.uk/my-new-awesome-path;
+# The line below will send a redirect for all other domains to the .it TLD and to a new path
+/my-awesome-path https://www.example.it/another-awesome-path;
+# The line below will send a redirect only for .fr TLD to a new path
+www.example.fr/my-awesome-path https://www.example.fr/my-new-awesome-path;
+```
+
+With this configuration, the nginx server will first test the host and path key, and if there is no match it will then also test the simple path. You can find some examples of response header below, obtained when using the previous `redirects.map` file:
+
+```bash
+$ curl --head -H "Host: www.example.com" http://localhost/my-awesome-path
+HTTP/1.1 301 Moved Permanently
+Location: https://www.example.com/my-new-awesome-path
+```
+
+```bash
+$ curl --head -H "Host: www.example.co.uk" http://localhost/my-awesome-path
+HTTP/1.1 301 Moved Permanently
+Location: https://www.example.co.uk/my-new-awesome-path
+```
+
+```bash
+$ curl --head -H "Host: www.example.eu" http://localhost/my-awesome-path
+HTTP/1.1 301 Moved Permanently
+Location: https://www.example.it/another-awesome-path
+```
+
+```bash
+$ curl --head -H "Host: www.example.fr" http://localhost/my-awesome-path
+HTTP/1.1 301 Moved Permanently
+Location: https://www.example.fr/my-new-awesome-path
+```
+
+```bash
+$ curl --head -H "Host: www.example.de" http://localhost/my-awesome-path
+HTTP/1.1 301 Moved Permanently
+Location: https://www.example.it/another-awesome-path
+```
+
+You can find the redirects.map test file in the `example` folder of this repo.
