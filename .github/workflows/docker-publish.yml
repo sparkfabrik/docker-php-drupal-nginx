@@ -2,33 +2,28 @@ name: Docker
 on:
   push:
     branches:
-      - "**"
+      - "feature/d8"
   pull_request:
     branches:
-      - master
+      - "feature/d8"
 
 env:
   IMAGE_NAME: docker-php-drupal-nginx
-  DOCKERFILE_1_13_6: Dockerfile-1.13.6-alpine
-  DOCKERFILE_1_17_6: Dockerfile-1.17.6-alpine
-  DOCKERFILE_1_21_1: Dockerfile-1.21.1-alpine
-  DOCKERFILE_1_21_6: Dockerfile-1.21.6-alpine
-  DOCKERFILE_1_23_1: Dockerfile-1.23.1-alpine
-  TAG_1_13_6: 1.13.6-alpine.d8
-  TAG_1_17_6: 1.17.6-alpine.d8
-  TAG_1_21_1: 1.21.1-alpine.d8
-  TAG_1_21_6: 1.21.6-alpine.d8
-  TAG_1_23_1: 1.23.1-alpine.d8
   TAG_D8: d8
-  TAG_1_13_6_RL: 1.13.6-alpine.d8-rootless
-  TAG_1_17_6_RL: 1.17.6-alpine.d8-rootless
-  TAG_1_21_1_RL: 1.21.1-alpine.d8-rootless
-  TAG_1_21_6_RL: 1.21.6-alpine.d8-rootless
-  TAG_1_23_1_RL: 1.23.1-alpine.d8-rootless
   TAG_D8_RL: d8-rootless
 
 jobs:
   test:
+    strategy:
+      matrix:
+        version:
+          [
+            1.23.1-alpine,
+            1.21.6-alpine,
+            1.21.1-alpine,
+            1.17.6-alpine,
+            1.13.6-alpine,
+          ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -41,33 +36,27 @@ jobs:
 
       - name: Build images
         run: |
-          docker buildx build --load . --file $DOCKERFILE_1_13_6 --tag $IMAGE_NAME:$TAG_1_13_6 --build-arg user=root
-          docker buildx build --load . --file $DOCKERFILE_1_13_6 --tag $IMAGE_NAME:$TAG_1_13_6_RL --build-arg user=1001
-          docker buildx build --load . --file $DOCKERFILE_1_17_6 --tag $IMAGE_NAME:$TAG_1_17_6 --build-arg user=root
-          docker buildx build --load . --file $DOCKERFILE_1_17_6 --tag $IMAGE_NAME:$TAG_1_17_6_RL --build-arg user=1001
-          docker buildx build --load . --file $DOCKERFILE_1_21_1 --tag $IMAGE_NAME:$TAG_1_21_1 --build-arg user=root
-          docker buildx build --load . --file $DOCKERFILE_1_21_1 --tag $IMAGE_NAME:$TAG_1_21_1_RL --build-arg user=1001
-          docker buildx build --load . --file $DOCKERFILE_1_21_6 --tag $IMAGE_NAME:$TAG_1_21_6 --build-arg user=root
-          docker buildx build --load . --file $DOCKERFILE_1_21_6 --tag $IMAGE_NAME:$TAG_1_21_6_RL --build-arg user=1001
-          docker buildx build --load . --file $DOCKERFILE_1_23_1 --tag $IMAGE_NAME:$TAG_1_23_1 --build-arg user=root
-          docker buildx build --load . --file $DOCKERFILE_1_23_1 --tag $IMAGE_NAME:$TAG_1_23_1_RL --build-arg user=1001
+          docker buildx build --load . --file Dockerfile-${{ matrix.version }} --tag $IMAGE_NAME:${{ matrix.version }}.d8 --build-arg user=root
+          docker buildx build --load . --file Dockerfile-${{ matrix.version }} --tag $IMAGE_NAME:${{ matrix.version }}.d8-rootless --build-arg user=1001
 
       - name: Test images
         shell: bash {0}
         run: |
-          IMAGE_TAG=${TAG_1_13_6} ./tests/tests.sh
-          IMAGE_TAG=${TAG_1_13_6_RL} IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
-          IMAGE_TAG=${TAG_1_17_6} ./tests/tests.sh
-          IMAGE_TAG=${TAG_1_17_6_RL} IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
-          IMAGE_TAG=${TAG_1_21_1} ./tests/tests.sh
-          IMAGE_TAG=${TAG_1_21_1_RL} IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
-          IMAGE_TAG=${TAG_1_21_6} ./tests/tests.sh
-          IMAGE_TAG=${TAG_1_21_6_RL} IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
-          IMAGE_TAG=${TAG_1_23_1} ./tests/tests.sh
-          IMAGE_TAG=${TAG_1_23_1_RL} IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
+          IMAGE_TAG=${{ matrix.version }}.d8 ./tests/tests.sh
+          IMAGE_TAG=${{ matrix.version }}.d8-rootless IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
 
   deploy:
     needs: test
+    strategy:
+      matrix:
+        version:
+          [
+            1.23.1-alpine,
+            1.21.6-alpine,
+            1.21.1-alpine,
+            1.17.6-alpine,
+            1.13.6-alpine,
+          ]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/feature/d8'
 
@@ -89,45 +78,25 @@ jobs:
           # Change all uppercase to lowercase.
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           echo IMAGE_ID=$IMAGE_ID
-          docker buildx build --push . --platform "linux/amd64" \
-            --file $DOCKERFILE_1_13_6 \
-            --tag $IMAGE_ID:$TAG_1_13_6 \
-            --tag $IMAGE_ID:$TAG_D8 \
+          docker buildx build --push . --platform "linux/amd64,linux/arm64" \
+            --file Dockerfile-${{ matrix.version }} \
+            --tag $IMAGE_ID:${{ matrix.version }}.d8 \
             --build-arg user=root
           docker buildx build --push . --platform "linux/amd64,linux/arm64" \
-            --file $DOCKERFILE_1_17_6 \
-            --tag $IMAGE_ID:$TAG_1_17_6 \
-            --build-arg user=root
-          docker buildx build --push . --platform "linux/amd64,linux/arm64" \
-            --file $DOCKERFILE_1_21_1 \
-            --tag $IMAGE_ID:$TAG_1_21_1 \
-            --build-arg user=root
-          docker buildx build --push . --platform "linux/amd64,linux/arm64" \
-            --file $DOCKERFILE_1_21_6 \
-            --tag $IMAGE_ID:$TAG_1_21_6 \
-            --build-arg user=root
-          docker buildx build --push . --platform "linux/amd64,linux/arm64" \
-            --file $DOCKERFILE_1_23_1 \
-            --tag $IMAGE_ID:$TAG_1_23_1 \
-            --build-arg user=root
-          docker buildx build --push . --platform "linux/amd64" \
-            --file $DOCKERFILE_1_13_6 \
-            --tag $IMAGE_ID:$TAG_1_13_6_RL \
-            --tag $IMAGE_ID:$TAG_D8_RL \
+            --file Dockerfile-${{ matrix.version }} \
+            --tag $IMAGE_ID:${{ matrix.version }}.d8-rootless \
             --build-arg user=1001
-          docker buildx build --push . --platform "linux/amd64,linux/arm64" \
-            --file $DOCKERFILE_1_17_6 \
-            --tag $IMAGE_ID:$TAG_1_17_6_RL \
-            --build-arg user=1001
-          docker buildx build --push . --platform "linux/amd64,linux/arm64" \
-            --file $DOCKERFILE_1_21_1 \
-            --tag $IMAGE_ID:$TAG_1_21_1_RL \
-            --build-arg user=1001
-          docker buildx build --push . --platform "linux/amd64,linux/arm64" \
-            --file $DOCKERFILE_1_21_6 \
-            --tag $IMAGE_ID:$TAG_1_21_6_RL \
-            --build-arg user=1001
-          docker buildx build --push . --platform "linux/amd64,linux/arm64" \
-            --file $DOCKERFILE_1_23_1 \
-            --tag $IMAGE_ID:$TAG_1_23_1_RL \
-            --build-arg user=1001
+
+      - name: Push d8 tag
+        if: ${{ matrix.version }} == '1.13.6-alpine'
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+          # Change all uppercase to lowercase.
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo IMAGE_ID=$IMAGE_ID
+          docker pull $IMAGE_ID:${{ matrix.version }}.d8
+          docker tag $IMAGE_ID:${{ matrix.version }}.d8 $IMAGE_ID:$TAG_D8
+          docker push $IMAGE_ID:$TAG_D8
+          docker pull $IMAGE_ID:${{ matrix.version }}.d8-rootless
+          docker tag $IMAGE_ID:${{ matrix.version }}.d8-rootless $IMAGE_ID:$TAG_D8_RL
+          docker push $IMAGE_ID:$TAG_D8_RL
