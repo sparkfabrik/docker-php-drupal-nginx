@@ -24,7 +24,7 @@ env:
   TAG_1_17_6_RL: 1.17.6-alpine.d8-rootless
   TAG_1_21_1_RL: 1.21.1-alpine.d8-rootless
   TAG_1_21_6_RL: 1.21.6-alpine.d8-rootless
-  TAG_1_23_1_RL: 1.21.6-alpine.d8-rootless
+  TAG_1_23_1_RL: 1.23.1-alpine.d8-rootless
   TAG_D8_RL: d8-rootless
 
 jobs:
