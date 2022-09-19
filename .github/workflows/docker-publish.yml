@@ -124,6 +124,10 @@ jobs:
             --tag $IMAGE_ID:$TAG_1_21_1_RL \
             --build-arg user=1001
           docker buildx build --push . --platform "linux/amd64,linux/arm64" \
+            --file $DOCKERFILE_1_21_6 \
+            --tag $IMAGE_ID:$TAG_1_21_6_RL \
+            --build-arg user=1001
+          docker buildx build --push . --platform "linux/amd64,linux/arm64" \
             --file $DOCKERFILE_1_23_1 \
             --tag $IMAGE_ID:$TAG_1_23_1_RL \
             --build-arg user=1001
