@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2022-12-12
+
+### Added
+
+- Added HSTS header in the server definition `catch-all-server.conf` and `from-to-www.conf`, if enabled it will automatically add the header in the following servers:
+
+  - default.conf
+  - subfolder.conf
+  - catch-all-server.conf
+  - from-to-www.conf
+
 ## 2022-09-19
 
 ### Added
@@ -43,7 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - New `HIDE_GOOGLE_GCS_HEADERS` environment variable to hide the google response headers coming from the google object storage bucket (default: the headers are hidden)
 
-# 2022-04-12
+## 2022-04-12
 
 ### Added
 

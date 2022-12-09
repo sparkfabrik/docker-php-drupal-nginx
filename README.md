@@ -7,8 +7,9 @@ specific configuration for Drupal 8.
 
 NGINX is configured dynamically by generating a `default.conf file.
 
-```
+```bash
 envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
+
 ```
 
 If you want customize the default configuration file, just override the file `/templates/default.conf`.
@@ -19,14 +20,16 @@ substituting the env variables with the actual values.
 
 Here you can find some reference documentation to fine tune Nginx:
 
-- https://www.nginx.com/resources/wiki/start/topics/recipes/drupal/
-- https://www.nginx.com/resources/wiki/start/topics/examples/phpfcgi/
-- http://nginx.org/en/docs/http/server_names.html#optimization
+- <https://www.nginx.com/resources/wiki/start/topics/recipes/drupal/>
+- <https://www.nginx.com/resources/wiki/start/topics/examples/phpfcgi/>
+- <http://nginx.org/en/docs/http/server_names.html#optimization>
 
 ### Default server custom configurations fragments
 
-```
-# Rewrite main server fragments.
+```bash
+
+# Rewrite main server fragments
+
 for filename in /etc/nginx/conf.d/fragments/*.conf; do
   if [ -e "${filename}" ] ; then
     cp ${filename} ${filename}.tmp
@@ -34,6 +37,7 @@ for filename in /etc/nginx/conf.d/fragments/*.conf; do
     rm ${filename}.tmp
   fi
 done
+
 ```
 
 ### Extra configurations
@@ -41,8 +45,10 @@ done
 You can also mount extra configurations (eg: a new server configuration), by placing files to: `/etc/nginx/conf.d/custom`, as
 the default server fragments, also this file get parsed by the entrypoint to substitute the env files.
 
-```
-# Rewrite custom server fragments.
+```bash
+
+# Rewrite custom server fragments
+
 for filename in /etc/nginx/conf.d/custom/*.conf; do
   if [ -e "${filename}" ] ; then
     cp ${filename} ${filename}.tmp
@@ -50,6 +56,7 @@ for filename in /etc/nginx/conf.d/custom/*.conf; do
     rm ${filename}.tmp
   fi
 done
+
 ```
 
 ## Env variables
@@ -70,7 +77,7 @@ The entrypoint file contains a list of environment variables that will be replac
 - `NGINX_CACHE_CONTROL_HEADER`: caching policy for public files (default: `public,max-age=3600`)
 - `NGINX_GZIP_ENABLE`: enable the gzip compression (default: `1`)
 - `SITEMAP_URL`: the absolute URL of the website sitemap that should be written on _robots.txt_ file for SEO purposes (no default provided, the directive is added to the _robots.txt_ only when the variable exists)
-- `NGINX_CORS_ENABLED`: enable cors for `/` path and the caller origin header represented by `$http_origin` nginx variable (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin) (default: `0`)
+- `NGINX_CORS_ENABLED`: enable cors for `/` path and the caller origin header represented by `$http_origin` nginx variable (<https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin>) (default: `0`)
 - `NGINX_CORS_DOMAINS`: a list of CORS enabled domains to activate cors just for the specified ones (no default provided)
 - `NGINX_REDIRECT_FROM_TO_WWW`: enable redirects from `www` domains to the domains without `www` and vice-versa
 - `NGINX_HIDE_DRUPAL_HEADERS` hide the drupal information from the response headers (default: the headers are visible)
