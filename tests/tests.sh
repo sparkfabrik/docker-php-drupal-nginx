@@ -38,12 +38,12 @@ print_title "CORS Headers not present"
 "${BASE}/image_verify.sh" \
 --source tests/overrides/cors/expectations-filtered-different-domain-php \
 --env-file tests/overrides/cors/envfile-filtered-different-domain \
---http-port "${OVERRIDES_NGINX_PORT}" --http-path index.php --user "${IMAGE_USER}" --cors-origin-host www.foobar.com "${IMAGE_NAME}:${IMAGE_TAG}" || (EXIT_CODE=$?; if [ ${EXIT_CODE} -eq 5 ]; then echo "\e[32mTests are failed, this is what we want to test\e[39m"; exit 0; elif [ ${EXIT_CODE} -eq 0 ]; then exit 99; else exit ${EXIT_CODE}; fi)
+--http-port "${OVERRIDES_NGINX_PORT}" --http-path index.php --user "${IMAGE_USER}" --cors-origin-host www.foobar.com "${IMAGE_NAME}:${IMAGE_TAG}" || (EXIT_CODE=$?; if [ ${EXIT_CODE} -eq 5 ]; then printf "\e[32mTests are failed, this is what we want to test\e[39m"; exit 0; elif [ ${EXIT_CODE} -eq 0 ]; then exit 99; else exit ${EXIT_CODE}; fi)
 
 "${BASE}/image_verify.sh" \
 --source tests/overrides/cors/expectations-filtered-different-domain-png \
 --env-file tests/overrides/cors/envfile-filtered-different-domain \
---http-port "${OVERRIDES_NGINX_PORT}" --http-path public/image.png --user "${IMAGE_USER}" --cors-origin-host www.foobar.com "${IMAGE_NAME}:${IMAGE_TAG}" || (EXIT_CODE=$?; if [ ${EXIT_CODE} -eq 5 ]; then echo "\e[32mTests are failed, this is what we want to test\e[39m"; exit 0; elif [ ${EXIT_CODE} -eq 0 ]; then exit 99; else exit ${EXIT_CODE}; fi)
+--http-port "${OVERRIDES_NGINX_PORT}" --http-path public/image.png --user "${IMAGE_USER}" --cors-origin-host www.foobar.com "${IMAGE_NAME}:${IMAGE_TAG}" || (EXIT_CODE=$?; if [ ${EXIT_CODE} -eq 5 ]; then printf "\e[32mTests are failed, this is what we want to test\e[39m"; exit 0; elif [ ${EXIT_CODE} -eq 0 ]; then exit 99; else exit ${EXIT_CODE}; fi)
 
 # From-to-www redirect
 print_title "from-to-www redirect tests"
