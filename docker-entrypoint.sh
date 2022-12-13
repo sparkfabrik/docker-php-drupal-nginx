@@ -20,6 +20,26 @@ else
   export NGINX_DEFAULT_SERVER_PORT="${NGINX_DEFAULT_SERVER_PORT:-80}"
 fi
 
+# Activate HSTS header (default: off)
+# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+# The suggested value for the max-age is 63072000 (2 years).
+export NGINX_HSTS_MAX_AGE="${NGINX_HSTS_MAX_AGE:-0}"
+export NGINX_HSTS_INCLUDE_SUBDOMAINS="${NGINX_HSTS_INCLUDE_SUBDOMAINS:-1}"
+export NGINX_HSTS_PRELOAD="${NGINX_HSTS_PRELOAD:-1}"
+if [ "${NGINX_HSTS_MAX_AGE}" -gt 0 ]; then
+  export NGINX_HSTS_HEADER="max-age=${NGINX_HSTS_MAX_AGE}"
+  if [ "${NGINX_HSTS_INCLUDE_SUBDOMAINS}" -eq 1 ]; then
+    export NGINX_HSTS_HEADER="${NGINX_HSTS_HEADER}; includeSubDomains"
+  fi
+  if [ "${NGINX_HSTS_PRELOAD}" -eq 1 ]; then
+    export NGINX_HSTS_HEADER="${NGINX_HSTS_HEADER}; preload"
+  fi
+  sed -e '/#hstsheader/r /templates/hsts.conf' -i /templates/default.conf;
+  sed -e '/#hstsheader/r /templates/hsts.conf' -i /templates/subfolder.conf;
+  sed -e '/#hstsheader/r /templates/hsts.conf' -i /templates/catch-all-server.conf;
+  sed -e '/#hstsheader/r /templates/hsts.conf' -i /templates/from-to-www.conf.tpl;
+fi
+
 # If the variable NGINX_DEFAULT_SERVER_NAME is left empty
 # (in this case the default value _ will be used), the default.conf
 # server declaration will be declared as the default catch all server.
@@ -32,7 +52,7 @@ if [ "${NGINX_DEFAULT_SERVER_NAME}" = "_" ]; then
 else
   export DEFAULT_SERVER=""
   # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_CATCHALL_RETURN_CODE}' < /templates/catch-all-server.conf > /etc/nginx/conf.d/catch-all-server.conf
+  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_CATCHALL_RETURN_CODE} ${NGINX_HSTS_HEADER}' < /templates/catch-all-server.conf > /etc/nginx/conf.d/catch-all-server.conf
 fi
 
 export NGINX_DEFAULT_ROOT="${NGINX_DEFAULT_ROOT:-/var/www/html}"
@@ -66,24 +86,6 @@ if [ "${NGINX_CORS_ENABLED}" = 1 ]; then
     print "Activating unfiltered CORS"
     cp /templates/fragments/location/php/cors-unfiltered.conf /etc/nginx/conf.d/fragments/location/php/cors.conf
   fi
-fi
-
-# Activate HSTS header (default: off)
-# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
-# The suggested value for the max-age is 63072000 (2 years).
-export NGINX_HSTS_MAX_AGE="${NGINX_HSTS_MAX_AGE:-0}"
-export NGINX_HSTS_INCLUDE_SUBDOMAINS="${NGINX_HSTS_INCLUDE_SUBDOMAINS:-1}"
-export NGINX_HSTS_PRELOAD="${NGINX_HSTS_PRELOAD:-1}"
-if [ "${NGINX_HSTS_MAX_AGE}" -gt 0 ]; then
-  export NGINX_HSTS_HEADER="max-age=${NGINX_HSTS_MAX_AGE}"
-  if [ "${NGINX_HSTS_INCLUDE_SUBDOMAINS}" -eq 1 ]; then
-    export NGINX_HSTS_HEADER="${NGINX_HSTS_HEADER}; includeSubDomains"
-  fi
-  if [ "${NGINX_HSTS_PRELOAD}" -eq 1 ]; then
-    export NGINX_HSTS_HEADER="${NGINX_HSTS_HEADER}; preload"
-  fi
-  # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-  envsubst '${NGINX_HSTS_HEADER}' < /templates/fragments/hsts.conf > /etc/nginx/conf.d/fragments/hsts.conf
 fi
 
 # If we are using an Object Storage Bucket, we add a custom location file.
@@ -133,11 +135,11 @@ if [ "${NGINX_GZIP_ENABLE}" = 1 ]; then
 fi
 
 # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_XFRAME_OPTION_VALUE}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
+envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_XFRAME_OPTION_VALUE} ${NGINX_HSTS_HEADER}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
 
 if [ "${NGINX_SUBFOLDER}" != 0 ]; then
   # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_XFRAME_OPTION_VALUE}' < /templates/subfolder.conf > /etc/nginx/conf.d/default.conf
+  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_XFRAME_OPTION_VALUE} ${NGINX_HSTS_HEADER}' < /templates/subfolder.conf > /etc/nginx/conf.d/default.conf
 fi
 
 # Handle robots.txt and sitemap directive
@@ -233,7 +235,7 @@ if [ "${NGINX_REDIRECT_FROM_TO_WWW}" -eq 1 ] && [ "${NGINX_DEFAULT_SERVER_NAME}"
       print "/etc/nginx/conf.d/from-to-www.conf - Creating a redirect from ${DOMAIN_FROM} to ${DOMAIN_TO}"
       # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
       DOMAIN_FROM=${DOMAIN_FROM} DOMAIN_TO=${DOMAIN_TO} \
-        envsubst '${DOMAIN_FROM} ${DOMAIN_TO} ${NGINX_DEFAULT_SERVER_PORT} ${DEFAULT_SERVER}' < /templates/from-to-www.conf.tpl \
+        envsubst '${DOMAIN_FROM} ${DOMAIN_TO} ${NGINX_DEFAULT_SERVER_PORT} ${DEFAULT_SERVER} ${NGINX_HSTS_HEADER}' < /templates/from-to-www.conf.tpl \
         | tee -a /etc/nginx/conf.d/from-to-www.conf >/dev/null
     else
       print "/etc/nginx/conf.d/from-to-www.conf - Skipping redirect from ${DOMAIN_FROM} to ${DOMAIN_TO} because it already exists"

@@ -92,3 +92,12 @@ print_title "HSTS header Enabled without preload"
 # HSTS no subdomains (max-age=63072000; preload)
 print_title "HSTS header Enabled without includeSubDomains"
 "${BASE}/image_verify.sh" --source tests/overrides/headers/expectations-hsts-no-subdomains --env-file tests/overrides/headers/envfile-hsts-no-subdomains --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+# HSTS related domains (max-age=63072000; preload)
+print_title "HSTS header related domains"
+"${BASE}/image_verify.sh" --source tests/overrides/headers/expectations-hsts-related-domains --env-file tests/overrides/headers/envfile-hsts-related-domains --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" --req-header-host domain1.com "${IMAGE_NAME}:${IMAGE_TAG}"
+
+#"HSTS header catch all tests"
+print_title "HSTS header catch all tests"
+"${BASE}/image_verify.sh" --source tests/overrides/headers/expectations-hsts-catch-all-expectations-ok --env-file tests/overrides/headers/envfile-hsts-catch-all --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" --req-header-host www.domain1.com "${IMAGE_NAME}:${IMAGE_TAG}"
+"${BASE}/image_verify.sh" --source tests/overrides/headers/expectations-hsts-catch-all-expectations-ko --env-file tests/overrides/headers/envfile-hsts-catch-all --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" --req-header-host domain1.com "${IMAGE_NAME}:${IMAGE_TAG}"

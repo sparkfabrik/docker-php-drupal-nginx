@@ -1,0 +1,11 @@
+HTTP_STATUS="404 Not Found"
+HEADER_RES_Server=^nginx$
+HEADER_RES_Content-Type=text/html
+HEADER_RES_X-catch-all=true
+HEADER_RES_X-Powered-By=
+HEADER_RES_X-Generator=
+HEADER_RES_X-Drupal-Dynamic-Cache=
+HEADER_RES_X-Drupal-Cache=
+HEADER_RES_X-Drupal-Route-Normalizer=
+HEADER_RES_X-Frame-Options=
+HEADER_RES_Strict-Transport-Security="max-age=63072000; preload"
