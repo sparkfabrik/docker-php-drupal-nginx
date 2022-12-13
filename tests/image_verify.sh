@@ -324,7 +324,7 @@ echo -e "Start testing process on image: ${DOCKER_IMAGE} ..."
 
 EXIT_STATUS=0
 
-if [ ${PHP_IS_NEEDED} -eq 1 ]; then
+if [ "${PHP_IS_NEEDED}" -eq 1 ]; then
   # Start a container for php to use for FPM purpose
   debug "Start php-fpm container for test purpose"
   debug "Docker run command: docker run --rm ${DOCKER_ENV} -d -w /var/www/html -v ${PWD}/tests/html:/var/www/html ${DOCKER_PHP_IMAGE}"
@@ -462,7 +462,7 @@ fi
 debug "Docker stop command: docker stop ${CONTAINER_ID} >/dev/null 2>&1"
 docker stop "${CONTAINER_ID}" >/dev/null 2>&1
 
-if [ ${PHP_IS_NEEDED} -eq 1 ]; then
+if [ "${PHP_IS_NEEDED}" -eq 1 ]; then
   debug "Docker stop command (PHP): docker stop ${PHP_CONTAINER_ID} >/dev/null 2>&1"
   docker stop "${PHP_CONTAINER_ID}" >/dev/null 2>&1
 fi
