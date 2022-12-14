@@ -156,6 +156,15 @@ print "Rewriting main server fragments on /etc/nginx/conf.d/fragments/*.conf"
 for filename in /etc/nginx/conf.d/fragments/*.conf; do
   if [ -e "${filename}" ] ; then
     cp "${filename}" "${filename}.tmp"
+    sed -e '/#hstsheader/r /templates/hsts.conf' -i "$filename.tmp";
+    if [ "${NGINX_HTTPSREDIRECT}" = 1 ]; then
+      print "Enabling HTTPS redirect"
+      sed -e '/#httpsredirec/r /templates/httpsredirect.conf' -i "$filename.tmp";
+    fi
+    if [ "${NGINX_XFRAME_OPTION_ENABLE}" = 1 ]; then
+      print "Enabling X-frame-Options Header"
+      sed -e '/#securityheaders/r /templates/security-headers.conf' -i "$filename.tmp";
+    fi
     # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
     envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER} ${NGINX_CORS_DOMAINS}' < "$filename.tmp" > "$filename"
     rm "${filename}.tmp"
@@ -167,6 +176,15 @@ print "Rewriting custom server fragments on /etc/nginx/conf.d/custom/*.conf"
 for filename in /etc/nginx/conf.d/custom/*.conf; do
   if [ -e "${filename}" ] ; then
     cp "${filename}" "${filename}.tmp"
+    sed -e '/#hstsheader/r /templates/hsts.conf' -i "$filename.tmp";
+    if [ "${NGINX_HTTPSREDIRECT}" = 1 ]; then
+      print "Enabling HTTPS redirect"
+      sed -e '/#httpsredirec/r /templates/httpsredirect.conf' -i "$filename.tmp";
+    fi
+    if [ "${NGINX_XFRAME_OPTION_ENABLE}" = 1 ]; then
+      print "Enabling X-frame-Options Header"
+      sed -e '/#securityheaders/r /templates/security-headers.conf' -i "$filename.tmp";
+    fi
     # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
     envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER} ${NGINX_CORS_DOMAINS}' < "$filename.tmp" > "$filename"
     rm "${filename}.tmp"
@@ -183,6 +201,15 @@ print "Rewriting root location fragments on /etc/nginx/conf.d/fragments/location
 for filename in /etc/nginx/conf.d/fragments/location/root/*.conf; do
   if [ -e "${filename}" ] ; then
     cp "${filename}" "${filename}.tmp"
+    sed -e '/#hstsheader/r /templates/hsts.conf' -i "$filename.tmp";
+    if [ "${NGINX_HTTPSREDIRECT}" = 1 ]; then
+      print "Enabling HTTPS redirect"
+      sed -e '/#httpsredirec/r /templates/httpsredirect.conf' -i "$filename.tmp";
+    fi
+    if [ "${NGINX_XFRAME_OPTION_ENABLE}" = 1 ]; then
+      print "Enabling X-frame-Options Header"
+      sed -e '/#securityheaders/r /templates/security-headers.conf' -i "$filename.tmp";
+    fi
     # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
     envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER} ${NGINX_CORS_DOMAINS}' < "$filename.tmp" > "$filename"
     rm "${filename}.tmp"
