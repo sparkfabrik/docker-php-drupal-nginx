@@ -1,6 +1,11 @@
 name: QA
 on:
-  - push
+  push:
+    branches:
+      - "feature/d8"
+  pull_request:
+    branches:
+      - "feature/d8"
 
 jobs:
   check-shell-scripts:
