@@ -151,12 +151,13 @@ if [ -n "${SITEMAP_URL}" ] && [ -w "${ROBOTS_PATH}" ] ; then
 	echo "Sitemap: ${SITEMAP_URL}" >> "${NGINX_DEFAULT_ROOT}/robots.txt"
 fi
 
-# Rewrite main server fragments.
-print "Rewriting main server fragments on /etc/nginx/conf.d/fragments/*.conf"
-for filename in /etc/nginx/conf.d/fragments/*.conf; do
+sharp_replacement() {
+  for filename in $1; do
   if [ -e "${filename}" ] ; then
     cp "${filename}" "${filename}.tmp"
-    sed -e '/#hstsheader/r /templates/hsts.conf' -i "$filename.tmp";
+    if [ "${NGINX_HSTS_MAX_AGE}" -gt 0 ]; then
+      sed -e '/#hstsheader/r /templates/hsts.conf' -i "$filename.tmp";
+    fi
     if [ "${NGINX_HTTPSREDIRECT}" = 1 ]; then
       print "Enabling HTTPS redirect"
       sed -e '/#httpsredirec/r /templates/httpsredirect.conf' -i "$filename.tmp";
@@ -166,30 +167,19 @@ for filename in /etc/nginx/conf.d/fragments/*.conf; do
       sed -e '/#securityheaders/r /templates/security-headers.conf' -i "$filename.tmp";
     fi
     # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER} ${NGINX_CORS_DOMAINS}' < "$filename.tmp" > "$filename"
+    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER} ${NGINX_CORS_DOMAINS} ${NGINX_HSTS_HEADER} ${NGINX_XFRAME_OPTION_ENABLE}' < "$filename.tmp" > "$filename"
     rm "${filename}.tmp"
   fi
 done
+}
+
+# Rewrite main server fragments.
+print "Rewriting main server fragments on /etc/nginx/conf.d/fragments/*.conf"
+sharp_replacement "/etc/nginx/conf.d/fragments/*.conf"
 
 # Rewrite custom server fragments.
 print "Rewriting custom server fragments on /etc/nginx/conf.d/custom/*.conf"
-for filename in /etc/nginx/conf.d/custom/*.conf; do
-  if [ -e "${filename}" ] ; then
-    cp "${filename}" "${filename}.tmp"
-    sed -e '/#hstsheader/r /templates/hsts.conf' -i "$filename.tmp";
-    if [ "${NGINX_HTTPSREDIRECT}" = 1 ]; then
-      print "Enabling HTTPS redirect"
-      sed -e '/#httpsredirec/r /templates/httpsredirect.conf' -i "$filename.tmp";
-    fi
-    if [ "${NGINX_XFRAME_OPTION_ENABLE}" = 1 ]; then
-      print "Enabling X-frame-Options Header"
-      sed -e '/#securityheaders/r /templates/security-headers.conf' -i "$filename.tmp";
-    fi
-    # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER} ${NGINX_CORS_DOMAINS}' < "$filename.tmp" > "$filename"
-    rm "${filename}.tmp"
-  fi
-done
+sharp_replacement "/etc/nginx/conf.d/custom/*.conf"
 
 # Check if an existing redirects.map file exists, otherwise we create an empty one.
 if [ ! -e "/etc/nginx/conf.d/redirects.map" ] ; then
@@ -198,23 +188,7 @@ fi
 
 # Rewrite root location fragments.
 print "Rewriting root location fragments on /etc/nginx/conf.d/fragments/location/root/*.conf"
-for filename in /etc/nginx/conf.d/fragments/location/root/*.conf; do
-  if [ -e "${filename}" ] ; then
-    cp "${filename}" "${filename}.tmp"
-    sed -e '/#hstsheader/r /templates/hsts.conf' -i "$filename.tmp";
-    if [ "${NGINX_HTTPSREDIRECT}" = 1 ]; then
-      print "Enabling HTTPS redirect"
-      sed -e '/#httpsredirec/r /templates/httpsredirect.conf' -i "$filename.tmp";
-    fi
-    if [ "${NGINX_XFRAME_OPTION_ENABLE}" = 1 ]; then
-      print "Enabling X-frame-Options Header"
-      sed -e '/#securityheaders/r /templates/security-headers.conf' -i "$filename.tmp";
-    fi
-    # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER} ${NGINX_CORS_DOMAINS}' < "$filename.tmp" > "$filename"
-    rm "${filename}.tmp"
-  fi
-done
+sharp_replacement "/etc/nginx/conf.d/fragments/location/root/*.conf"
 
 # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
 envsubst '${NGINX_PHP_READ_TIMEOUT}' < /templates/fastcgi.conf > /etc/nginx/fastcgi.conf
