@@ -73,6 +73,9 @@ export NGINX_HIDE_SENSITIVE_HEADERS="${NGINX_HIDE_SENSITIVE_HEADERS:-1}"
 export NGINX_XFRAME_OPTION_ENABLE="${NGINX_XFRAME_OPTION_ENABLE:-0}"
 export NGINX_XFRAME_OPTION_VALUE="${NGINX_XFRAME_OPTION_VALUE:-SAMEORIGIN}"
 
+# Custom nginx configuration.
+export NGINX_CLIENT_MAX_BODY_SIZE="${NGINX_CLIENT_MAX_BODY_SIZE:-200M}"
+
 # Activate CORS on php location using a fragment.
 export NGINX_CORS_ENABLED="${NGINX_CORS_ENABLED:-0}"
 export NGINX_CORS_DOMAINS="${NGINX_CORS_DOMAINS}"
@@ -205,9 +208,11 @@ if [ "${NGINX_HIDE_SENSITIVE_HEADERS}" -eq 1 ]; then
   cat /templates/fastcgi-hide-sensitive-headers.conf | tee -a /etc/nginx/fastcgi.conf >/dev/null
 fi
 export SERVER_TOKEN_TOGGLE
+
+# Process custom configuration
 cp /etc/nginx/conf.d/000-custom.conf /etc/nginx/conf.d/000-custom.conf.tmp
 # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-envsubst '${SERVER_TOKEN_TOGGLE}' < /etc/nginx/conf.d/000-custom.conf.tmp > /etc/nginx/conf.d/000-custom.conf
+envsubst '${SERVER_TOKEN_TOGGLE} ${NGINX_CLIENT_MAX_BODY_SIZE}' < /etc/nginx/conf.d/000-custom.conf.tmp > /etc/nginx/conf.d/000-custom.conf
 
 # Hide project specific headers
 if [ -r /templates/fastcgi-hide-additional-headers.conf ]; then
