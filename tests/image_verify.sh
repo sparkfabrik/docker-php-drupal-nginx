@@ -16,7 +16,7 @@
 # 11:   Failed to get the data
 #####################
 
-DEBUG="${DEBUG:-1}"
+DEBUG="${DEBUG:-0}"
 DRY_RUN=0
 
 PHP_IS_NEEDED="${PHP_IS_NEEDED:-0}"
