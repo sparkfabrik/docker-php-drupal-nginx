@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # shellcheck disable=SC3037
 
 ### Exit status ###
@@ -58,24 +58,24 @@ I will test the defined expectations as defined below:
 
 ### Generic variables ###
 EOM
-printf "%-${PAD}s %s\n" "PHP_IS_NEEDED" "${PHP_IS_NEEDED}"
-printf "%-${PAD}s %s\n" "DOCKER_TEST_IMAGE" "${DOCKER_TEST_IMAGE}"
-printf "%-${PAD}s %s\n" "DOCKER_IMAGE" "${DOCKER_IMAGE}"
-printf "%-${PAD}s %s\n" "PORT" "${DOCKER_TEST_PORT}"
-printf "%-${PAD}s %s\n" "PROTO" "${DOCKER_TEST_PROTO}"
-printf "%-${PAD}s %s\n" "PATH" "${DOCKER_TEST_PATH}"
-printf "%-${PAD}s %s\n" "ENV_LIST" "${ENV_LIST}"
-printf "%-${PAD}s %s\n" "ENV_FILE" "${ENV_FILE}"
-printf "%-${PAD}s %s\n" "MOUNT_LIST" "${MOUNT_LIST}"
-printf "%-${PAD}s %s\n" "SOURCE_FILE" "${SOURCE_FILE}"
-printf "%-${PAD}s %s\n" "CORS_ORIGIN_HOST" "${CORS_ORIGIN_HOST}"
-printf "%-${PAD}s %s\n" "REQ_HEADER_HOST" "${REQ_HEADER_HOST}"
+  printf "%-${PAD}s %s\n" "PHP_IS_NEEDED" "${PHP_IS_NEEDED}"
+  printf "%-${PAD}s %s\n" "DOCKER_TEST_IMAGE" "${DOCKER_TEST_IMAGE}"
+  printf "%-${PAD}s %s\n" "DOCKER_IMAGE" "${DOCKER_IMAGE}"
+  printf "%-${PAD}s %s\n" "PORT" "${DOCKER_TEST_PORT}"
+  printf "%-${PAD}s %s\n" "PROTO" "${DOCKER_TEST_PROTO}"
+  printf "%-${PAD}s %s\n" "PATH" "${DOCKER_TEST_PATH}"
+  printf "%-${PAD}s %s\n" "ENV_LIST" "${ENV_LIST}"
+  printf "%-${PAD}s %s\n" "ENV_FILE" "${ENV_FILE}"
+  printf "%-${PAD}s %s\n" "MOUNT_LIST" "${MOUNT_LIST}"
+  printf "%-${PAD}s %s\n" "SOURCE_FILE" "${SOURCE_FILE}"
+  printf "%-${PAD}s %s\n" "CORS_ORIGIN_HOST" "${CORS_ORIGIN_HOST}"
+  printf "%-${PAD}s %s\n" "REQ_HEADER_HOST" "${REQ_HEADER_HOST}"
 
-if [ -n "${TEST_USER}" ]; then
+  if [ -n "${TEST_USER}" ]; then
     printf "%-${PAD}s %s\n" "CONTAINER_USER" "${TEST_USER}"
-fi
+  fi
 
-cat <<EOM
+  cat <<EOM
 
 ### Defined variables ###
 EOM
@@ -101,7 +101,7 @@ EOM
         printf "%-${PAD}s %s\n" "${PRINT_VAR}" "${CUR_TEST_VAL}"
       fi
     fi
-  done < "${SOURCE_FILE}"
+  done <"${SOURCE_FILE}"
 }
 
 show_usage() {
@@ -133,7 +133,7 @@ debug() {
 
 process_docker_env() {
   if [ -n "${ENV_LIST}" ]; then
-    DOCKER_ENV="-e $(echo "${ENV_LIST}" | sed 's/,/ -e /g;')"
+    DOCKER_ENV="-e ${ENV_LIST//,/ -e }"
   fi
   if [ -n "${ENV_FILE}" ]; then
     if [ -f "${ENV_FILE}" ]; then
@@ -149,21 +149,68 @@ process_docker_env() {
 PARAMS=""
 while [ -n "${1}" ]; do
   case "$1" in
-    --help|-h) show_usage; exit 0 ;;
-    --dry-run) DRY_RUN=1; shift ;;
-    --php-needed) PHP_IS_NEEDED="1"; shift 1 ;;
-    --env|-e) if [ -n "${ENV_LIST}" ]; then ENV_LIST="${ENV_LIST},${2}"; else ENV_LIST="${2}"; fi; shift 2 ;;
-    --env-file) ENV_FILE="${2}"; if [ ! -f "${ENV_FILE}" ]; then exit 3; fi; shift 2 ;;
-    -v) if [ -n "${MOUNT_LIST}" ]; then MOUNT_LIST="${MOUNT_LIST} -v ${2}"; else MOUNT_LIST="-v ${2}"; fi; shift 2 ;;
-    --http-port) DOCKER_TEST_PORT="${2}"; shift 2 ;;
-    --http-proto) DOCKER_TEST_PROTO="${2}"; shift 2 ;;
-    --http-path) DOCKER_TEST_PATH="${2}"; shift 2 ;;
-    --source) SOURCE_FILE="${2}"; if [ ! -f "${SOURCE_FILE}" ]; then exit 2; fi; shift 2 ;;
-    --cors-origin-host) CORS_ORIGIN_HOST="${2}"; shift 2 ;;
-    --req-header-host) REQ_HEADER_HOST="${2}"; shift 2 ;;
-    --user|-u) TEST_USER="${2}"; shift 2 ;;
-    --*=|-*) echo -e "Error: Unsupported flag $1" >&2; exit 1 ;;
-    *) PARAMS="$PARAMS $1"; shift ;;
+  --help | -h)
+    show_usage
+    exit 0
+    ;;
+  --dry-run)
+    DRY_RUN=1
+    shift
+    ;;
+  --php-needed)
+    PHP_IS_NEEDED="1"
+    shift 1
+    ;;
+  --env | -e)
+    if [ -n "${ENV_LIST}" ]; then ENV_LIST="${ENV_LIST},${2}"; else ENV_LIST="${2}"; fi
+    shift 2
+    ;;
+  --env-file)
+    ENV_FILE="${2}"
+    if [ ! -f "${ENV_FILE}" ]; then exit 3; fi
+    shift 2
+    ;;
+  -v)
+    if [ -n "${MOUNT_LIST}" ]; then MOUNT_LIST="${MOUNT_LIST} -v ${2}"; else MOUNT_LIST="-v ${2}"; fi
+    shift 2
+    ;;
+  --http-port)
+    DOCKER_TEST_PORT="${2}"
+    shift 2
+    ;;
+  --http-proto)
+    DOCKER_TEST_PROTO="${2}"
+    shift 2
+    ;;
+  --http-path)
+    DOCKER_TEST_PATH="${2}"
+    shift 2
+    ;;
+  --source)
+    SOURCE_FILE="${2}"
+    if [ ! -f "${SOURCE_FILE}" ]; then exit 2; fi
+    shift 2
+    ;;
+  --cors-origin-host)
+    CORS_ORIGIN_HOST="${2}"
+    shift 2
+    ;;
+  --req-header-host)
+    REQ_HEADER_HOST="${2}"
+    shift 2
+    ;;
+  --user | -u)
+    TEST_USER="${2}"
+    shift 2
+    ;;
+  --*= | -*)
+    echo -e "Error: Unsupported flag $1" >&2
+    exit 1
+    ;;
+  *)
+    PARAMS="$PARAMS $1"
+    shift
+    ;;
   esac
 done
 
@@ -202,7 +249,7 @@ test_eq() {
 
   return $LOC_EXIT_STATUS
 }
-test_rex () {
+test_rex() {
   # shellcheck disable=SC2126
   if [ "$(echo -e "${1:-}" | grep -E "${2:-}" | wc -l)" -ne 1 ]; then
     TEST_PASSED=0
@@ -303,7 +350,7 @@ test_for_user() {
   fi
 
   if [ $LOC_EXIT_STATUS -ne 0 ] && [ $LOC_EXIT_STATUS -gt $EXIT_STATUS ]; then
-      EXIT_STATUS=$LOC_EXIT_STATUS
+    EXIT_STATUS=$LOC_EXIT_STATUS
   fi
 
   return $LOC_EXIT_STATUS
@@ -377,7 +424,7 @@ if [ $? -ne 0 ] || [ -z "${DOCKER_TEST_IP}" ]; then
 fi
 
 HTTPIE_HOST_HEADER=""
-if [ -n "${REQ_HEADER_HOST}" ];then
+if [ -n "${REQ_HEADER_HOST}" ]; then
   HTTPIE_HOST_HEADER="host:${REQ_HEADER_HOST}"
 fi
 
@@ -395,7 +442,7 @@ LINE_VAL=""
 SEP="~~~~~~~"
 EMPTY_PLACEHOLDER="~~~EMPTY~~~"
 OLD_IFS=$IFS
-IFS="$(printf '\nx')" && IFS="${IFS%x}";
+IFS="$(printf '\nx')" && IFS="${IFS%x}"
 for line in $(echo -e "${DOCKER_TEST_OUTPUT}" | tr -d '\r' | sed 's/^$/'${SEP}'/g'); do
   if [ "${line}" = "${SEP}" ]; then
 
@@ -451,7 +498,7 @@ if [ -f "${SOURCE_FILE}" ]; then
       debug "CUR_TEST_VAR: ${CUR_TEST_VAR}"
       debug "CUR_TEST_VAL: ${CUR_TEST_VAL}"
     fi
-  done < "${SOURCE_FILE}"
+  done <"${SOURCE_FILE}"
 fi
 
 if [ -n "${TEST_USER}" ]; then
