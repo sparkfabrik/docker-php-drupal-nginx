@@ -61,6 +61,7 @@ export NGINX_SUBFOLDER="${NGINX_SUBFOLDER:-0}"
 # shellcheck disable=SC2155
 export NGINX_SUBFOLDER_ESCAPED="$(echo "${NGINX_SUBFOLDER}" | sed 's/\//\\\//g')"
 export NGINX_OSB_BUCKET="${NGINX_OSB_BUCKET}"
+export NGINX_OSB_PUBLIC_PATH="${NGINX_OSB_PUBLIC_PATH:-}"
 export NGINX_OSB_RESOLVER="${NGINX_OSB_RESOLVER:-8.8.8.8 ipv6=off}"
 export HIDE_GOOGLE_GCS_HEADERS="${HIDE_GOOGLE_GCS_HEADERS:-1}"
 export DRUPAL_PUBLIC_FILES_PATH="${DRUPAL_PUBLIC_FILES_PATH:-sites/default/files}"
@@ -93,11 +94,18 @@ fi
 
 # If we are using an Object Storage Bucket, we add a custom location file.
 # We also check if a file with the same name does not exist, to prevent the override.
-if [ -n "${NGINX_OSB_BUCKET}" ] && [ ! -f "/etc/nginx/conf.d/fragments/osb.conf" ]; then
+if [ -n "${NGINX_OSB_BUCKET}" ] && [ ! -f "/etc/nginx/conf.d/fragments/001-osb-default.conf" ]; then
   mkdir -p /etc/nginx/conf.d/fragments
-  # We add osb.conf to fragments if Nginx is configured to use a bucket.
+  # We add 001-osb-default.conf to fragments if Nginx is configured to use a bucket.
   # Env subst will be done later on all fragments files.
-  cp /templates/fragments/osb.conf /etc/nginx/conf.d/fragments/osb.conf
+  cp /templates/fragments/001-osb-default.conf /etc/nginx/conf.d/fragments/001-osb-default.conf
+
+  # If we want to activate the assets:// stream support over s3.
+  if [ "${NGINX_ASSETS_STREAM_OVER_S3}" = 1 ]; then
+    print "Enabling assets:// stream support"
+    cp /templates/fragments/000-osb-lazy-assets-over-s3.conf /etc/nginx/conf.d/fragments/000-osb-lazy-assets-over-s3.conf
+  fi
+
   # If we want cors, we need to add more config to osb location.
   if [ "${NGINX_CORS_ENABLED}" = 1 ]; then
     mkdir -p /etc/nginx/conf.d/fragments/location/osb
@@ -112,10 +120,14 @@ if [ -n "${NGINX_OSB_BUCKET}" ] && [ ! -f "/etc/nginx/conf.d/fragments/osb.conf"
     fi
   fi
   # If we want to suppress google headers coming from the google storage. 
-  # We add more configuration on osb.conf file template before adding it on fragments . 
+  # We add more configuration on 001-osb-default.conf file template before adding it on fragments .
   if [ "${HIDE_GOOGLE_GCS_HEADERS}" = 1 ]; then
     print "Hiding Google Storage headers"
-    sed -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /etc/nginx/conf.d/fragments/osb.conf;
+    sed -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /etc/nginx/conf.d/fragments/001-osb-default.conf;
+    if [ "${NGINX_ASSETS_STREAM_OVER_S3}" = 1 ]; then
+
+      sed -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /etc/nginx/conf.d/fragments/000-osb-lazy-assets-over-s3.conf;
+    fi
   fi
 fi
 
@@ -170,7 +182,7 @@ sharp_replacement() {
       sed -e '/#securityheaders/r /templates/security-headers.conf' -i "$filename.tmp";
     fi
     # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER} ${NGINX_CORS_DOMAINS} ${NGINX_HSTS_HEADER} ${NGINX_XFRAME_OPTION_ENABLE}' < "$filename.tmp" > "$filename"
+    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER} ${NGINX_CORS_DOMAINS} ${NGINX_HSTS_HEADER} ${NGINX_XFRAME_OPTION_ENABLE} ${NGINX_OSB_PUBLIC_PATH}' < "$filename.tmp" > "$filename"
     rm "${filename}.tmp"
   fi
 done
