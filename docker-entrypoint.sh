@@ -63,6 +63,7 @@ export NGINX_SUBFOLDER_ESCAPED="$(echo "${NGINX_SUBFOLDER}" | sed 's/\//\\\//g')
 export NGINX_OSB_BUCKET="${NGINX_OSB_BUCKET}"
 export NGINX_OSB_PUBLIC_PATH="${NGINX_OSB_PUBLIC_PATH:-}"
 export NGINX_OSB_ASSETS_PATH="${NGINX_OSB_ASSETS_PATH:-}"
+export NGINX_ASSETS_STREAM_OVER_S3="${NGINX_ASSETS_STREAM_OVER_S3:-0}"
 export NGINX_OSB_RESOLVER="${NGINX_OSB_RESOLVER:-8.8.8.8 ipv6=off}"
 export HIDE_GOOGLE_GCS_HEADERS="${HIDE_GOOGLE_GCS_HEADERS:-1}"
 export DRUPAL_PUBLIC_FILES_PATH="${DRUPAL_PUBLIC_FILES_PATH:-sites/default/files}"
@@ -127,7 +128,6 @@ if [ -n "${NGINX_OSB_BUCKET}" ] && [ ! -f "/etc/nginx/conf.d/fragments/001-osb-d
     print "Hiding Google Storage headers"
     sed -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /etc/nginx/conf.d/fragments/001-osb-default.conf;
     if [ "${NGINX_ASSETS_STREAM_OVER_S3}" = 1 ]; then
-
       sed -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /etc/nginx/conf.d/fragments/000-osb-lazy-assets-over-s3.conf;
     fi
   fi
@@ -184,7 +184,7 @@ sharp_replacement() {
       sed -e '/#securityheaders/r /templates/security-headers.conf' -i "$filename.tmp";
     fi
     # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER} ${NGINX_CORS_DOMAINS} ${NGINX_HSTS_HEADER} ${NGINX_XFRAME_OPTION_ENABLE} ${NGINX_OSB_PUBLIC_PATH} ${NGINX_OSB_ASSETS_PATH} ${DRUPAL_ASSETS_FILES_PATH}' < "$filename.tmp" > "$filename"
+    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER} ${NGINX_CORS_DOMAINS} ${NGINX_HSTS_HEADER} ${NGINX_XFRAME_OPTION_ENABLE} ${NGINX_ASSETS_STREAM_OVER_S3} ${NGINX_OSB_PUBLIC_PATH} ${NGINX_OSB_ASSETS_PATH} ${DRUPAL_ASSETS_FILES_PATH}' < "$filename.tmp" > "$filename"
     rm "${filename}.tmp"
   fi
 done
