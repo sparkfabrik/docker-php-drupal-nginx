@@ -31,6 +31,7 @@ build-rootless:
 	docker build -f Dockerfile-1.23.1-alpine -t $(IMAGE_NAME):1.23.1-alpine.d8-rootless --build-arg user=1001 .
 	docker build -f Dockerfile-1.23.3-alpine -t $(IMAGE_NAME):1.23.3-alpine.d8-rootless --build-arg user=1001 .
 	docker build -f Dockerfile-1.23.3-alpine-slim -t $(IMAGE_NAME):1.23.3-alpine-slim.d8-rootless --build-arg user=1001 .
+	docker build -f Dockerfile-1.25.1-alpine-slim -t $(IMAGE_NAME):1.25.1-alpine-slim.d8-rootless --build-arg user=1001 .
 
 test-rootless:
 	@chmod +x ./tests/tests.sh
@@ -41,6 +42,7 @@ test-rootless:
 	@IMAGE_NAME=$(IMAGE_NAME) IMAGE_TAG=1.23.1-alpine.d8-rootless IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
 	@IMAGE_NAME=$(IMAGE_NAME) IMAGE_TAG=1.23.3-alpine.d8-rootless IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
 	@IMAGE_NAME=$(IMAGE_NAME) IMAGE_TAG=1.23.3-alpine-slim.d8-rootless IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
+	@IMAGE_NAME=$(IMAGE_NAME) IMAGE_TAG=1.25.1-alpine-slim.d8-rootless IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
 
 shellcheck-build:
 	@docker build -f shellcheck/Dockerfile -t sparkfabrik/shellchek shellcheck
