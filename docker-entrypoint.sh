@@ -123,7 +123,7 @@ if [ -n "${NGINX_OSB_BUCKET}" ] && [ ! -f "/etc/nginx/conf.d/fragments/001-osb-d
     fi
   fi
   # If we want to suppress google headers coming from the google storage. 
-  # We add more configuration on 001-osb-default.conf file template before adding it on fragments .
+  # we add more configuration on 001-osb-default.conf and 000-osb-lazy-assets-over-s3.conf file templates before adding it on fragments .
   if [ "${HIDE_GOOGLE_GCS_HEADERS}" = 1 ]; then
     print "Hiding Google Storage headers"
     sed -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /etc/nginx/conf.d/fragments/001-osb-default.conf;
