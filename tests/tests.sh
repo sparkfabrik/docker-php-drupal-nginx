@@ -113,3 +113,7 @@ print_title "HSTS header related domains"
 print_title "HSTS header catch all tests"
 "${BASE}/image_verify.sh" --source "${BASE}/overrides/headers/expectations-hsts-catch-all-expectations-ok" --env-file "${BASE}/overrides/headers/envfile-hsts-catch-all" --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" --req-header-host www.domain1.com "${IMAGE_NAME}:${IMAGE_TAG}"
 "${BASE}/image_verify.sh" --source "${BASE}/overrides/headers/expectations-hsts-catch-all-expectations-ko" --env-file "${BASE}/overrides/headers/envfile-hsts-catch-all" --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" --req-header-host domain1.com "${IMAGE_NAME}:${IMAGE_TAG}"
+
+# CSP header tests
+print_title "CSP header tests"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/headers/expectations-csp-enabled" --env-file "${BASE}/overrides/headers/envfile-csp-enabled" --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
