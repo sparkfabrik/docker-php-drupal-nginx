@@ -42,7 +42,7 @@ fi
 
 # Activate CSP header (default: off)
 # https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
-export NGINX_CSP_HEADER="${NGINX_CSP_HEADER}"
+export NGINX_CSP_HEADER="${NGINX_CSP_HEADER:-}"
 if [ -n "${NGINX_CSP_HEADER}" ]; then
   print "Activating CSP"
   # envsubst '${NGINX_CSP_HEADER}' < /templates/content-security-policy.conf > /templates/csp.conf
