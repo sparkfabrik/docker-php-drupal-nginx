@@ -86,6 +86,7 @@ The entrypoint file contains a list of environment variables that will be replac
 - `NGINX_HSTS_MAX_AGE` enables the `Strict-Transport-Security` header and defines the `max-age` value (default: 0)
 - `NGINX_HSTS_INCLUDE_SUBDOMAINS` enables the `includeSubDomains` feature in the `Strict-Transport-Security` header (default: 1)
 - `NGINX_HSTS_PRELOAD` enables the `preload` feature in the `Strict-Transport-Security` header (default: 1)
+- `NGINX_CSP_HEADER` enables the `Content-Security-Policy` header and defines the value (default: the header is not set)
 
 ## Rootless feature
 

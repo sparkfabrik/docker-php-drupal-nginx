@@ -40,6 +40,15 @@ if [ "${NGINX_HSTS_MAX_AGE}" -gt 0 ]; then
   sed -e '/#hstsheader/r /templates/hsts.conf' -i /templates/from-to-www.conf.tpl;
 fi
 
+# Activate CSP header (default: off)
+# https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+export NGINX_CSP_HEADER="${NGINX_CSP_HEADER:-}"
+if [ -n "${NGINX_CSP_HEADER}" ]; then
+  print "Activating CSP"
+  # envsubst '${NGINX_CSP_HEADER}' < /templates/content-security-policy.conf > /templates/csp.conf
+  sed -e '/#cspheader/r /templates/csp.conf' -i /templates/default.conf;
+fi
+
 # If the variable NGINX_DEFAULT_SERVER_NAME is left empty
 # (in this case the default value _ will be used), the default.conf
 # server declaration will be declared as the default catch all server.
@@ -152,7 +161,7 @@ if [ "${NGINX_GZIP_ENABLE}" = 1 ]; then
 fi
 
 # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_XFRAME_OPTION_VALUE} ${NGINX_HSTS_HEADER}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
+envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_XFRAME_OPTION_VALUE} ${NGINX_HSTS_HEADER} ${NGINX_CSP_HEADER}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
 
 if [ "${NGINX_SUBFOLDER}" != 0 ]; then
   # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
