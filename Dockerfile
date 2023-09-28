@@ -1,18 +1,23 @@
-FROM nginx:1.23.3-alpine
+ARG NGINX_IMAGE_TAG=1.25.1-alpine-slim
+
+FROM nginx:${NGINX_IMAGE_TAG}
 
 # Pass inexistent UUID (e.g.: 1001) to enhance the container security
 ARG user=root
 
 LABEL org.opencontainers.image.source https://github.com/sparkfabrik/docker-php-drupal-nginx/tree/feature/d8
 
+# Add for backward compatibility.
+ENV NGINX_ACCESS_LOG_FORMAT=main
+
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 COPY templates /templates
-COPY config/custom.conf /etc/nginx/conf.d/000-custom.conf
+COPY config/conf.d /etc/nginx/conf.d
 
 RUN chmod +x /docker-entrypoint.sh && \
     chmod 775 /etc/nginx && \
     chmod 775 /etc/nginx/conf.d && \
-    chmod 664 /etc/nginx/conf.d/000-custom.conf && \
+    find /etc/nginx/conf.d -type f -exec chmod 664 {} + && \
     mkdir -p /etc/nginx/conf.d/custom && \
     chmod 775 /etc/nginx/conf.d/custom && \
     mkdir -p /etc/nginx/conf.d/fragments && \

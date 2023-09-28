@@ -39,8 +39,16 @@ jobs:
 
       - name: Build images
         run: |
-          docker buildx build --load . --file Dockerfile-${{ matrix.version }} --tag $IMAGE_NAME:${{ matrix.version }}.d8 --build-arg user=root
-          docker buildx build --load . --file Dockerfile-${{ matrix.version }} --tag $IMAGE_NAME:${{ matrix.version }}.d8-rootless --build-arg user=1001
+          docker buildx build --load . \
+            --file Dockerfile \
+            --tag $IMAGE_NAME:${{ matrix.version }}.d8 \
+            --build-arg NGINX_IMAGE_TAG=${{ matrix.version }} \
+            --build-arg user=root
+          docker buildx build --load . \
+            --file Dockerfile \
+            --tag $IMAGE_NAME:${{ matrix.version }}.d8-rootless \
+            --build-arg NGINX_IMAGE_TAG=${{ matrix.version }} \
+            --build-arg user=1001
 
       - name: Test images
         shell: bash {0}
@@ -92,12 +100,14 @@ jobs:
           PLATFORMS="${{ matrix.version == '1.13.6-alpine' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}"
           echo PLATFORMS=$PLATFORMS
           docker buildx build --push . --platform "$PLATFORMS" \
-            --file Dockerfile-${{ matrix.version }} \
+            --file Dockerfile \
             --tag $IMAGE_ID:${{ matrix.version }}.d8 \
+            --build-arg NGINX_IMAGE_TAG=${{ matrix.version }} \
             --build-arg user=root
           docker buildx build --push . --platform "$PLATFORMS" \
-            --file Dockerfile-${{ matrix.version }} \
+            --file Dockerfile \
             --tag $IMAGE_ID:${{ matrix.version }}.d8-rootless \
+            --build-arg NGINX_IMAGE_TAG=${{ matrix.version }} \
             --build-arg user=1001
 
       - name: Push d8 tag
