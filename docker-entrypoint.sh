@@ -64,6 +64,7 @@ else
   envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_CATCHALL_RETURN_CODE} ${NGINX_HSTS_HEADER}' < /templates/catch-all-server.conf > /etc/nginx/conf.d/catch-all-server.conf
 fi
 
+export NGINX_ACCESS_LOG_FORMAT="${NGINX_ACCESS_LOG_FORMAT:-main}"
 export NGINX_DEFAULT_ROOT="${NGINX_DEFAULT_ROOT:-/var/www/html}"
 export NGINX_HTTPSREDIRECT="${NGINX_HTTPSREDIRECT:-0}"
 export NGINX_SUBFOLDER="${NGINX_SUBFOLDER:-0}"
@@ -93,6 +94,11 @@ export NGINX_CLIENT_MAX_BODY_SIZE="${NGINX_CLIENT_MAX_BODY_SIZE:-200M}"
 # Enforce IPv6 off if NGINX_OSB_RESOLVER_ENFORCE_IPV6_OFF is set to 1
 if [ "${NGINX_OSB_RESOLVER_ENFORCE_IPV6_OFF}" = "1" ] && ! echo "${NGINX_OSB_RESOLVER}" | grep -q "ipv6=off"; then
   export NGINX_OSB_RESOLVER="${NGINX_OSB_RESOLVER} ipv6=off"
+fi
+
+# If the environment is not local, we enable structured logging.
+if [ "${ENV:-}" != "loc" ]; then
+  export NGINX_ACCESS_LOG_FORMAT="structured"
 fi
 
 # Activate CORS on php location using a fragment.
@@ -167,7 +173,7 @@ if [ "${NGINX_GZIP_ENABLE}" = 1 ]; then
 fi
 
 # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_XFRAME_OPTION_VALUE} ${NGINX_HSTS_HEADER} ${NGINX_CSP_HEADER}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
+envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_ACCESS_LOG_FORMAT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_XFRAME_OPTION_VALUE} ${NGINX_HSTS_HEADER} ${NGINX_CSP_HEADER}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
 
 if [ "${NGINX_SUBFOLDER}" != 0 ]; then
   # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
