@@ -101,6 +101,22 @@ if [ "${ENV:-}" != "loc" ]; then
   export NGINX_ACCESS_LOG_FORMAT="structured"
 fi
 
+# These lines of code have been added to provide a BC path for those
+# environments that still have the NGINX_OSB_BUCKET variable filled with the
+# old format that consist in having the value of NGINX_OSB_PUBLIC_PATH (usually
+# /public) at the end.
+# The BC path is necessary because changing the value of the NGINX_OSB_BUCKET
+# variable might not be immediately possible.
+if [ -n "${NGINX_OSB_BUCKET}" ] && [ -n "${NGINX_OSB_PUBLIC_PATH}" ]; then
+  case ${NGINX_OSB_BUCKET} in
+    *"${NGINX_OSB_PUBLIC_PATH}")
+      print "Stripping ${NGINX_OSB_PUBLIC_PATH} (value of NGINX_OSB_PUBLIC_PATH) from the end of NGINX_OSB_BUCKET (whose value is ${NGINX_OSB_BUCKET})"
+      NGINX_OSB_BUCKET=$(echo "${NGINX_OSB_BUCKET}" | sed "s|${NGINX_OSB_PUBLIC_PATH}$||")
+      export NGINX_OSB_BUCKET
+      ;;
+  esac
+fi
+
 # Activate CORS on php location using a fragment.
 export NGINX_CORS_ENABLED="${NGINX_CORS_ENABLED:-0}"
 export NGINX_CORS_DOMAINS="${NGINX_CORS_DOMAINS}"

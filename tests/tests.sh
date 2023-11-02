@@ -117,3 +117,6 @@ print_title "HSTS header catch all tests"
 # CSP header tests
 print_title "CSP header tests"
 "${BASE}/image_verify.sh" --source "${BASE}/overrides/headers/expectations-csp-enabled" --env-file "${BASE}/overrides/headers/envfile-csp-enabled" --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "Environment verify"
+"${BASE}/image_verify_env.sh" --source "${BASE}/overrides/osb_bucket/expectations" --env-file "${BASE}/overrides/osb_bucket/envfile" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
