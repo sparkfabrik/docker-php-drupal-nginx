@@ -1,0 +1,3 @@
+IN_LOGS=Stripping /path-ending-with-foo (value of NGINX_OSB_PUBLIC_PATH) from the end of NGINX_OSB_BUCKET (whose value is http://some-host.com/with/some/path-ending-with-foo)
+FILE_TO_SEARCH=/etc/nginx/conf.d/fragments/001-osb-default.conf
+REGEX_TO_FIND=^\s\+set $bucket_base_url http://some-host.com/with/some/path-ending-with-foo;

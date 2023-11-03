@@ -1,0 +1,5 @@
+PHP_HOST=localhost
+NGINX_DEFAULT_SERVER_PORT=4321
+NGINX_DEFAULT_ROOT=/var/www/html/folder
+NGINX_OSB_BUCKET=http://some-host.com/with/some/path-ending-with-foo
+NGINX_OSB_PUBLIC_PATH=/path-ending-with-foo
