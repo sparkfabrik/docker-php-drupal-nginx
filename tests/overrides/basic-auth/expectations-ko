@@ -1,0 +1,4 @@
+HTTP_STATUS="401 Unauthorized"
+HEADER_RES_Server=^nginx$
+HEADER_RES_Content-Type=text/html
+HEADER_RES_WWW-Authenticate=^Basic realm=.*Restricted

@@ -1,4 +1,4 @@
-ARG NGINX_IMAGE_TAG=1.25.1-alpine-slim
+ARG NGINX_IMAGE_TAG=1.25.3-alpine-slim
 
 FROM nginx:${NGINX_IMAGE_TAG}
 
@@ -9,6 +9,9 @@ LABEL org.opencontainers.image.source https://github.com/sparkfabrik/docker-php-
 
 # Add for backward compatibility.
 ENV NGINX_ACCESS_LOG_FORMAT=main
+
+# Install packages
+RUN apk add --no-cache apache2-utils
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 COPY templates /templates

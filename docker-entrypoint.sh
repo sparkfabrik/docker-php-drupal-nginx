@@ -20,6 +20,33 @@ else
   export NGINX_DEFAULT_SERVER_PORT="${NGINX_DEFAULT_SERVER_PORT:-80}"
 fi
 
+# Basic Auth
+# If NGINX_BASIC_AUTH_USER and NGINX_BASIC_AUTH_PASS are set, we activate basic auth.
+# Otherwise no authentification is required.
+export NGINX_BASIC_AUTH_USER="${NGINX_BASIC_AUTH_USER:-}"
+export NGINX_BASIC_AUTH_PASS="${NGINX_BASIC_AUTH_PASS:-}"
+export NGINX_BASIC_AUTH_REALM="${NGINX_BASIC_AUTH_REALM:-Authentication Required - Sparkfabrik}"
+export NGINX_BASIC_AUTH_FILE="${NGINX_BASIC_AUTH_FILE:-/etc/nginx/conf.d/fragments/.htpasswd}"
+export NGINX_BASIC_AUTH_EXCLUDE_LOCATIONS="${NGINX_BASIC_AUTH_EXCLUDE_LOCATIONS:-}"
+if [ -n "${NGINX_BASIC_AUTH_USER}" ] && [ -n "${NGINX_BASIC_AUTH_PASS}" ]; then
+  print "Activating basic auth"
+  mkdir -p "$(dirname "${NGINX_BASIC_AUTH_FILE}")"
+  htpasswd -bc "${NGINX_BASIC_AUTH_FILE}" "${NGINX_BASIC_AUTH_USER}" "${NGINX_BASIC_AUTH_PASS}"
+  # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
+  envsubst '${NGINX_BASIC_AUTH_REALM} ${NGINX_BASIC_AUTH_FILE}' < /templates/fragments/000-basic-auth.conf > /etc/nginx/conf.d/fragments/000-basic-auth.conf
+
+  if [ -n "${NGINX_BASIC_AUTH_EXCLUDE_LOCATIONS}" ]; then
+    print "Excluding basic auth on locations: ${NGINX_BASIC_AUTH_EXCLUDE_LOCATIONS}"
+
+    for EXCLUDE_LOCATION in $(echo "${NGINX_BASIC_AUTH_EXCLUDE_LOCATIONS}" | tr ',' ' '); do
+      export EXCLUDE_LOCATION
+      print "Templating basic auth excluded location: ${EXCLUDE_LOCATION}"
+      # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
+      envsubst '${EXCLUDE_LOCATION}' < /templates/fragments/001-basic-auth-excluded-location.conf >> /etc/nginx/conf.d/fragments/001-basic-auth-excluded-location.conf
+    done
+  fi
+fi
+
 # Activate HSTS header (default: off)
 # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
 # The suggested value for the max-age is 63072000 (2 years).
@@ -134,16 +161,16 @@ fi
 
 # If we are using an Object Storage Bucket, we add a custom location file.
 # We also check if a file with the same name does not exist, to prevent the override.
-if [ -n "${NGINX_OSB_BUCKET}" ] && [ ! -f "/etc/nginx/conf.d/fragments/001-osb-default.conf" ]; then
+if [ -n "${NGINX_OSB_BUCKET}" ] && [ ! -f "/etc/nginx/conf.d/fragments/011-osb-default.conf" ]; then
   mkdir -p /etc/nginx/conf.d/fragments
-  # We add 001-osb-default.conf to fragments if Nginx is configured to use a bucket.
+  # We add 011-osb-default.conf to fragments if Nginx is configured to use a bucket.
   # Env subst will be done later on all fragments files.
-  cp /templates/fragments/001-osb-default.conf /etc/nginx/conf.d/fragments/001-osb-default.conf
+  cp /templates/fragments/011-osb-default.conf /etc/nginx/conf.d/fragments/011-osb-default.conf
 
   # If we want to activate the assets:// stream support over s3.
   if [ "${NGINX_ASSETS_STREAM_OVER_S3}" = 1 ]; then
     print "Enabling assets:// stream support"
-    cp /templates/fragments/000-osb-lazy-assets-over-s3.conf /etc/nginx/conf.d/fragments/000-osb-lazy-assets-over-s3.conf
+    cp /templates/fragments/010-osb-lazy-assets-over-s3.conf /etc/nginx/conf.d/fragments/010-osb-lazy-assets-over-s3.conf
   fi
 
   # If we want cors, we need to add more config to osb location.
@@ -160,12 +187,12 @@ if [ -n "${NGINX_OSB_BUCKET}" ] && [ ! -f "/etc/nginx/conf.d/fragments/001-osb-d
     fi
   fi
   # If we want to suppress google headers coming from the google storage. 
-  # we add more configuration on 001-osb-default.conf and 000-osb-lazy-assets-over-s3.conf file templates before adding it on fragments .
+  # we add more configuration on 011-osb-default.conf and 010-osb-lazy-assets-over-s3.conf file templates before adding it on fragments .
   if [ "${HIDE_GOOGLE_GCS_HEADERS}" = 1 ]; then
     print "Hiding Google Storage headers"
-    sed -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /etc/nginx/conf.d/fragments/001-osb-default.conf;
+    sed -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /etc/nginx/conf.d/fragments/011-osb-default.conf;
     if [ "${NGINX_ASSETS_STREAM_OVER_S3}" = 1 ]; then
-      sed -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /etc/nginx/conf.d/fragments/000-osb-lazy-assets-over-s3.conf;
+      sed -e '/#hidegoogleheaders/r /templates/fragments/location/osb/osb-hide-google-headers.conf' -i /etc/nginx/conf.d/fragments/010-osb-lazy-assets-over-s3.conf;
     fi
   fi
 fi

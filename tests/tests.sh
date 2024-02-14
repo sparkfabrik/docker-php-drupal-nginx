@@ -120,3 +120,13 @@ print_title "CSP header tests"
 
 print_title "Environment verify"
 "${BASE}/image_verify_env.sh" --source "${BASE}/overrides/osb_bucket/expectations" --env-file "${BASE}/overrides/osb_bucket/envfile" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+# Basic Auth Test
+print_title "Basic Auth Test - No auth configured"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/basic-auth/expectations-ko" --env-file "${BASE}/overrides/basic-auth/envfile-ko" --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "Basic Auth Test - No auth configured but location is not protected"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/basic-auth/expectations-ok-location" --env-file "${BASE}/overrides/basic-auth/envfile-ok-location" --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "Basic Auth Test - Auth configured"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/basic-auth/expectations-ok" --env-file "${BASE}/overrides/basic-auth/envfile-ok" --http-port "${OVERRIDES_NGINX_PORT}" --req-header-auth "user:pass" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
