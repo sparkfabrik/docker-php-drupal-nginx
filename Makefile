@@ -6,7 +6,8 @@ IMAGE_TAGS ?= 1.13.6-alpine \
 	1.23.1-alpine \
 	1.23.3-alpine \
 	1.23.3-alpine-slim \
-	1.25.1-alpine-slim
+	1.25.1-alpine-slim \
+	1.25.3-alpine-slim
 
 IMAGE_NAME ?= sparkfabrik/docker-php-drupal-nginx
 

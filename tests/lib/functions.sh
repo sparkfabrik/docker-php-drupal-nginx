@@ -8,7 +8,7 @@ set_initial_vars() {
   DRY_RUN=0
 
   PHP_IS_NEEDED="${PHP_IS_NEEDED:-0}"
-  DOCKER_PHP_IMAGE="php:7.4-fpm"
+  DOCKER_PHP_IMAGE="php:8.3.2-fpm-alpine"
   DOCKER_PHP_IP=""
 
   DOCKER_TEST_IMAGE="alpine/httpie:latest"
@@ -37,6 +37,7 @@ set_initial_vars() {
 
   CORS_ORIGIN_HOST=""
   REQ_HEADER_HOST=""
+  REQ_HEADER_AUTH=""
 }
 
 parse_args() {
@@ -94,6 +95,10 @@ parse_args() {
       REQ_HEADER_HOST="${2}"
       shift 2
       ;;
+    --req-header-auth)
+      REQ_HEADER_AUTH="${2}"
+      shift 2
+      ;;
     --user | -u)
       TEST_USER="${2}"
       shift 2
@@ -148,6 +153,7 @@ EOM
   printf "%-${PAD}s %s\n" "SOURCE_FILE" "${SOURCE_FILE}"
   printf "%-${PAD}s %s\n" "CORS_ORIGIN_HOST" "${CORS_ORIGIN_HOST}"
   printf "%-${PAD}s %s\n" "REQ_HEADER_HOST" "${REQ_HEADER_HOST}"
+  printf "%-${PAD}s %s\n" "REQ_HEADER_AUTH" "${REQ_HEADER_AUTH}"
 
   if [ -n "${TEST_USER}" ]; then
     printf "%-${PAD}s %s\n" "CONTAINER_USER" "${TEST_USER}"
@@ -199,6 +205,7 @@ Options:
   --source PATH                       Defines a path for a file which includes the desired expectations
   --cors-origin-host STRING           Defines the origin host used to test CORS
   --req-header-host STRING            Defines the host request header; not used if it is empty
+  --req-header-auth STRING            Defines the base64 string used as basic auth request header; not used if it is empty
   --user,-u STRING                    Defines the default user for the image
 EOM
 }
@@ -324,7 +331,7 @@ test_for_http_status() {
   if [ -n "${CUR_TEST_VAL}" ]; then
     LOC_EXIT_STATUS=0
     TEST_PASSED=1
-    CONTAINER_VAL=$(echo -e "${DOCKER_TEST_HEADER_RES}" | grep "^HTTP/1.1 ${CUR_TEST_VAL}" | awk -F': ' '{gsub(/\r/,""); print $0}')
+    CONTAINER_VAL=$(echo -e "${DOCKER_TEST_HEADER_RES}" | grep "^HTTP/1.1" | awk -F': ' '{gsub(/\r/,""); print $0}')
     test_eq "${CONTAINER_VAL}" "HTTP/1.1 ${CUR_TEST_VAL}" "HTTP Status Header"
   fi
 
@@ -465,14 +472,21 @@ get_container_ip() {
 }
 
 get_http_test_output() {
-  HTTPIE_HOST_HEADER=""
+  HTTPIE_REQ_HEADERS=""
+  if [ -n "${CORS_ORIGIN_HOST}" ]; then
+    HTTPIE_REQ_HEADERS="${HTTPIE_REQ_HEADERS} origin:http://${CORS_ORIGIN_HOST}"
+  fi
   if [ -n "${REQ_HEADER_HOST}" ]; then
-    HTTPIE_HOST_HEADER="host:${REQ_HEADER_HOST}"
+    HTTPIE_REQ_HEADERS="${HTTPIE_REQ_HEADERS} host:${REQ_HEADER_HOST}"
+  fi
+  HTTPIE_ADDITIONAL_OPTIONS=""
+  if [ -n "${REQ_HEADER_AUTH}" ]; then
+    HTTPIE_ADDITIONAL_OPTIONS="${HTTPIE_ADDITIONAL_OPTIONS} -a ${REQ_HEADER_AUTH}"
   fi
 
-  debug "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} origin:http://${CORS_ORIGIN_HOST} ${HTTPIE_HOST_HEADER}"
+  debug "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb ${HTTPIE_ADDITIONAL_OPTIONS} GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} ${HTTPIE_REQ_HEADERS}"
   # shellcheck disable=SC2086
-  DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb GET "${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH}" origin:http://${CORS_ORIGIN_HOST} ${HTTPIE_HOST_HEADER})
+  DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb ${HTTPIE_ADDITIONAL_OPTIONS} GET "${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH}" ${HTTPIE_REQ_HEADERS})
   #shellcheck disable=SC2181
   if [ $? -ne 0 ]; then
     echo -e "Failed to get the data"

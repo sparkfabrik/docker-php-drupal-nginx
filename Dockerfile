@@ -1,4 +1,4 @@
-ARG NGINX_IMAGE_TAG=1.25.1-alpine-slim
+ARG NGINX_IMAGE_TAG=1.25.3-alpine-slim
 
 FROM nginx:${NGINX_IMAGE_TAG}
 
@@ -9,6 +9,9 @@ LABEL org.opencontainers.image.source https://github.com/sparkfabrik/docker-php-
 
 # Add for backward compatibility.
 ENV NGINX_ACCESS_LOG_FORMAT=main
+
+# Install packages
+RUN apk add --no-cache apache2-utils
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 COPY templates /templates
@@ -28,7 +31,7 @@ RUN chmod +x /docker-entrypoint.sh && \
     mkdir -p /var/run/nginx && \
     chmod 775 /var/run/nginx && \
     sed -i 's|/var/run/nginx.pid|/var/run/nginx/nginx.pid|g' /etc/nginx/nginx.conf && \
-    chmod 775 /templates && \
+    find /templates -type d -exec chmod 775 {} + && \
     chmod 664 /etc/nginx/fastcgi.conf && \
     chmod 664 /etc/nginx/conf.d/default.conf
 
