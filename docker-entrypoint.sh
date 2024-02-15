@@ -23,17 +23,36 @@ fi
 # Basic Auth
 # If NGINX_BASIC_AUTH_USER and NGINX_BASIC_AUTH_PASS are set, we activate basic auth.
 # Otherwise no authentification is required.
-export NGINX_BASIC_AUTH_USER="${NGINX_BASIC_AUTH_USER:-}"
+export NGINX_BASIC_AUTH_USER="${NGINX_BASIC_AUTH_USER:-admin}"
 export NGINX_BASIC_AUTH_PASS="${NGINX_BASIC_AUTH_PASS:-}"
 export NGINX_BASIC_AUTH_REALM="${NGINX_BASIC_AUTH_REALM:-Authentication Required - Sparkfabrik}"
 export NGINX_BASIC_AUTH_FILE="${NGINX_BASIC_AUTH_FILE:-/etc/nginx/conf.d/fragments/.htpasswd}"
 export NGINX_BASIC_AUTH_EXCLUDE_LOCATIONS="${NGINX_BASIC_AUTH_EXCLUDE_LOCATIONS:-}"
+export NGINX_BASIC_AUTH_EXCLUDE_REQUEST_URIS="${NGINX_BASIC_AUTH_EXCLUDE_REQUEST_URIS:-}"
 if [ -n "${NGINX_BASIC_AUTH_USER}" ] && [ -n "${NGINX_BASIC_AUTH_PASS}" ]; then
   print "Activating basic auth"
+
+  # Create the .htpasswd file
   mkdir -p "$(dirname "${NGINX_BASIC_AUTH_FILE}")"
   htpasswd -bc "${NGINX_BASIC_AUTH_FILE}" "${NGINX_BASIC_AUTH_USER}" "${NGINX_BASIC_AUTH_PASS}"
+
+  # Generate template for basic auth
   # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
   envsubst '${NGINX_BASIC_AUTH_REALM} ${NGINX_BASIC_AUTH_FILE}' < /templates/fragments/000-basic-auth.conf > /etc/nginx/conf.d/fragments/000-basic-auth.conf
+
+  if [ -n "${NGINX_BASIC_AUTH_EXCLUDE_REQUEST_URIS}" ]; then
+    # Sanitize the NGINX_BASIC_AUTH_EXCLUDE_REQUEST_URIS variable
+    NGINX_BASIC_AUTH_EXCLUDE_REQUEST_URIS=$(echo "${NGINX_BASIC_AUTH_EXCLUDE_REQUEST_URIS}" | sed 's/,/|/g')
+    print "Excluding basic auth on request URIs: ${NGINX_BASIC_AUTH_EXCLUDE_REQUEST_URIS}"
+
+    # Generate template for basic auth excluded request URIs
+    # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
+    envsubst '${NGINX_BASIC_AUTH_EXCLUDE_REQUEST_URIS}' < /templates/fragments/001-basic-auth-excluded-request-uris.conf.tpl > /templates/fragments/001-basic-auth-excluded-request-uris.conf
+    # Include the basic auth excluded request URIs in the basic auth fragment
+    sed -e '/# basic-auth-exclude-uris-placeholder/r /templates/fragments/001-basic-auth-excluded-request-uris.conf' -i /etc/nginx/conf.d/fragments/000-basic-auth.conf;
+  fi
+  # Remove the placeholder for the basic auth excluded request URIs if it is not used
+  sed -i '/# basic-auth-exclude-uris-placeholder/d' /etc/nginx/conf.d/fragments/000-basic-auth.conf
 
   if [ -n "${NGINX_BASIC_AUTH_EXCLUDE_LOCATIONS}" ]; then
     print "Excluding basic auth on locations: ${NGINX_BASIC_AUTH_EXCLUDE_LOCATIONS}"
@@ -42,7 +61,7 @@ if [ -n "${NGINX_BASIC_AUTH_USER}" ] && [ -n "${NGINX_BASIC_AUTH_PASS}" ]; then
       export EXCLUDE_LOCATION
       print "Templating basic auth excluded location: ${EXCLUDE_LOCATION}"
       # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-      envsubst '${EXCLUDE_LOCATION}' < /templates/fragments/001-basic-auth-excluded-location.conf >> /etc/nginx/conf.d/fragments/001-basic-auth-excluded-location.conf
+      envsubst '${EXCLUDE_LOCATION}' < /templates/fragments/002-basic-auth-excluded-location.conf >> /etc/nginx/conf.d/fragments/002-basic-auth-excluded-location.conf
     done
   fi
 fi

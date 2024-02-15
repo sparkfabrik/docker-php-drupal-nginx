@@ -8,7 +8,7 @@ set_initial_vars() {
   DRY_RUN=0
 
   PHP_IS_NEEDED="${PHP_IS_NEEDED:-0}"
-  DOCKER_PHP_IMAGE="php:7.4-fpm"
+  DOCKER_PHP_IMAGE="php:8.3.2-fpm-alpine"
   DOCKER_PHP_IP=""
 
   DOCKER_TEST_IMAGE="alpine/httpie:latest"

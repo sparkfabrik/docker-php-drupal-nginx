@@ -128,5 +128,8 @@ print_title "Basic Auth Test - No auth configured"
 print_title "Basic Auth Test - No auth configured but location is not protected"
 "${BASE}/image_verify.sh" --source "${BASE}/overrides/basic-auth/expectations-ok-location" --env-file "${BASE}/overrides/basic-auth/envfile-ok-location" --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
 
+print_title "Basic Auth Test - No auth configured but request uri is not protected"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/basic-auth/expectations-ok-request-uris" --env-file "${BASE}/overrides/basic-auth/envfile-ok-request-uris" --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
 print_title "Basic Auth Test - Auth configured"
 "${BASE}/image_verify.sh" --source "${BASE}/overrides/basic-auth/expectations-ok" --env-file "${BASE}/overrides/basic-auth/envfile-ok" --http-port "${OVERRIDES_NGINX_PORT}" --req-header-auth "user:pass" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"

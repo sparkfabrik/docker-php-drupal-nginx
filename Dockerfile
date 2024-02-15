@@ -31,7 +31,7 @@ RUN chmod +x /docker-entrypoint.sh && \
     mkdir -p /var/run/nginx && \
     chmod 775 /var/run/nginx && \
     sed -i 's|/var/run/nginx.pid|/var/run/nginx/nginx.pid|g' /etc/nginx/nginx.conf && \
-    chmod 775 /templates && \
+    find /templates -type d -exec chmod 775 {} + && \
     chmod 664 /etc/nginx/fastcgi.conf && \
     chmod 664 /etc/nginx/conf.d/default.conf
 
