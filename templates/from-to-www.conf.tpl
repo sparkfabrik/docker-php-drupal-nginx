@@ -2,9 +2,9 @@ server {
     server_name ${DOMAIN_FROM};
     listen ${NGINX_DEFAULT_SERVER_PORT} ${DEFAULT_SERVER};
     #hstsheader
-    set $current_proto $scheme;
+    set $request_proto $scheme;
     if ($http_x_forwarded_proto = "https") {
-        set $current_proto "https";
+        set $request_proto "https";
     }
-    return 301 $current_proto://${DOMAIN_TO}$request_uri;
+    return 301 $request_proto://${DOMAIN_TO}$request_uri;
 }
