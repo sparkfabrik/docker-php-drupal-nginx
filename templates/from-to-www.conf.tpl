@@ -2,6 +2,7 @@ server {
     server_name ${DOMAIN_FROM};
     listen ${NGINX_DEFAULT_SERVER_PORT} ${DEFAULT_SERVER};
     #hstsheader
+    #httpsredirect
     set $request_proto $scheme;
     if ($http_x_forwarded_proto = "https") {
         set $request_proto "https";
