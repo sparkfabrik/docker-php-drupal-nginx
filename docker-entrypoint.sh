@@ -225,8 +225,8 @@ fi
 
 if [ "${NGINX_HTTPSREDIRECT}" = 1 ]; then
   print "Enabling HTTPS redirect"
-  sed -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/default.conf;
-  sed -e '/#httpsredirec/r /templates/httpsredirect.conf' -i /templates/subfolder.conf;
+  sed -e '/#httpsredirect/r /templates/httpsredirect.conf' -i /templates/default.conf;
+  sed -e '/#httpsredirect/r /templates/httpsredirect.conf' -i /templates/subfolder.conf;
 fi
 
 if [ "${NGINX_GZIP_ENABLE}" = 1 ]; then
@@ -260,7 +260,7 @@ sharp_replacement() {
     fi
     if [ "${NGINX_HTTPSREDIRECT}" = 1 ]; then
       print "Enabling HTTPS redirect"
-      sed -e '/#httpsredirec/r /templates/httpsredirect.conf' -i "$filename.tmp";
+      sed -e '/#httpsredirect/r /templates/httpsredirect.conf' -i "$filename.tmp";
     fi
     if [ "${NGINX_XFRAME_OPTION_ENABLE}" = 1 ]; then
       print "Enabling X-frame-Options Header"
@@ -344,6 +344,9 @@ if [ "${NGINX_REDIRECT_FROM_TO_WWW}" -eq 1 ] && [ "${NGINX_DEFAULT_SERVER_NAME}"
       print "/etc/nginx/conf.d/from-to-www.conf - Skipping redirect from ${DOMAIN_FROM} to ${DOMAIN_TO} because it already exists"
     fi
   done
+  # Rewrite root location fragments.
+  print "Rewriting on /etc/nginx/conf.d/from-to-www.conf"
+  sharp_replacement "/etc/nginx/conf.d/from-to-www.conf"
 fi
 
 exec nginx -g "daemon off;"
