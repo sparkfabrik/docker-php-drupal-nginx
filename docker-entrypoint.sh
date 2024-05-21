@@ -318,6 +318,12 @@ fi
 
 # Process redirect from-to-www configuration
 if [ "${NGINX_REDIRECT_FROM_TO_WWW}" -eq 1 ] && [ "${NGINX_DEFAULT_SERVER_NAME}" != "_" ]; then
+  # Rewrite root location fragments.
+  if [ "${NGINX_HTTPSREDIRECT}" = 1 ]; then
+    print "Enabling HTTPS redirect"
+    sed -e '/#httpsredirect/r /templates/httpsredirect.conf' -i "/templates/from-to-www.conf.tpl";
+  fi
+
   print "Enabling from-to-www redirects"
   touch /etc/nginx/conf.d/from-to-www.conf
   for domain in ${NGINX_DEFAULT_SERVER_NAME}; do
@@ -344,9 +350,6 @@ if [ "${NGINX_REDIRECT_FROM_TO_WWW}" -eq 1 ] && [ "${NGINX_DEFAULT_SERVER_NAME}"
       print "/etc/nginx/conf.d/from-to-www.conf - Skipping redirect from ${DOMAIN_FROM} to ${DOMAIN_TO} because it already exists"
     fi
   done
-  # Rewrite root location fragments.
-  print "Rewriting on /etc/nginx/conf.d/from-to-www.conf"
-  sharp_replacement "/etc/nginx/conf.d/from-to-www.conf"
 fi
 
 exec nginx -g "daemon off;"
