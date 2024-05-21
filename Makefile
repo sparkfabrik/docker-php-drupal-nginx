@@ -1,13 +1,11 @@
 # Add tags for the official nginx image to build
-IMAGE_TAGS ?= 1.13.6-alpine \
-	1.17.6-alpine \
-	1.21.1-alpine \
-	1.21.6-alpine \
-	1.23.1-alpine \
+IMAGE_TAGS ?= 1.23.1-alpine \
 	1.23.3-alpine \
 	1.23.3-alpine-slim \
 	1.25.1-alpine-slim \
-	1.25.3-alpine-slim
+	1.25.3-alpine-slim \
+	1.25.5-alpine-slim \
+	1.26.0-alpine-slim
 
 IMAGE_NAME ?= sparkfabrik/docker-php-drupal-nginx
 
