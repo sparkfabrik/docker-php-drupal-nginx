@@ -72,6 +72,12 @@ if [ -n "${NGINX_BASIC_AUTH_USER}" ] && [ -n "${NGINX_BASIC_AUTH_PASS}" ]; then
   fi
 fi
 
+# Activate the forbidden locations when the environment is not local
+if [ "${ENV:-}" != "loc" ]; then
+  print "Activating the forbidden locations"
+  cp /templates/fragments/005-forbidden-locations.conf /etc/nginx/conf.d/fragments/005-forbidden-locations.conf
+fi
+
 # Activate HSTS header (default: off)
 # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
 # The suggested value for the max-age is 63072000 (2 years).
