@@ -12,6 +12,12 @@ export PHP_PORT="${PHP_PORT:-9000}"
 export NGINX_PHP_READ_TIMEOUT="${NGINX_PHP_READ_TIMEOUT:-900}"
 export NGINX_CATCHALL_RETURN_CODE="${NGINX_CATCHALL_RETURN_CODE:-444}"
 
+export NGINX_ACCESS_LOG_FORMAT="${NGINX_ACCESS_LOG_FORMAT:-main}"
+# If the environment is not local, we enable structured logging.
+if [ "${ENV:-}" != "loc" ]; then
+  export NGINX_ACCESS_LOG_FORMAT="structured"
+fi
+
 # If you use the rootless image the user directive is not needed
 if [ "$(id -u)" -ne 0 ]; then
   sed -i '/^user /d' /etc/nginx/nginx.conf
@@ -107,10 +113,9 @@ if [ "${NGINX_DEFAULT_SERVER_NAME}" = "_" ]; then
 else
   export DEFAULT_SERVER=""
   # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_CATCHALL_RETURN_CODE} ${NGINX_HSTS_HEADER}' < /templates/catch-all-server.conf > /etc/nginx/conf.d/catch-all-server.conf
+  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_ACCESS_LOG_FORMAT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_CATCHALL_RETURN_CODE} ${NGINX_HSTS_HEADER}' < /templates/catch-all-server.conf > /etc/nginx/conf.d/catch-all-server.conf
 fi
 
-export NGINX_ACCESS_LOG_FORMAT="${NGINX_ACCESS_LOG_FORMAT:-main}"
 export NGINX_DEFAULT_ROOT="${NGINX_DEFAULT_ROOT:-/var/www/html}"
 export NGINX_HTTPSREDIRECT="${NGINX_HTTPSREDIRECT:-0}"
 export NGINX_SUBFOLDER="${NGINX_SUBFOLDER:-0}"
@@ -140,11 +145,6 @@ export NGINX_CLIENT_MAX_BODY_SIZE="${NGINX_CLIENT_MAX_BODY_SIZE:-200M}"
 # Enforce IPv6 off if NGINX_OSB_RESOLVER_ENFORCE_IPV6_OFF is set to 1
 if [ "${NGINX_OSB_RESOLVER_ENFORCE_IPV6_OFF}" = "1" ] && ! echo "${NGINX_OSB_RESOLVER}" | grep -q "ipv6=off"; then
   export NGINX_OSB_RESOLVER="${NGINX_OSB_RESOLVER} ipv6=off"
-fi
-
-# If the environment is not local, we enable structured logging.
-if [ "${ENV:-}" != "loc" ]; then
-  export NGINX_ACCESS_LOG_FORMAT="structured"
 fi
 
 # These lines of code have been added to provide a BC path for those
@@ -239,7 +239,7 @@ envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_ACCESS_LOG_FORMAT} ${NGINX_DEFAULT_SER
 
 if [ "${NGINX_SUBFOLDER}" != 0 ]; then
   # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_XFRAME_OPTION_VALUE} ${NGINX_HSTS_HEADER}' < /templates/subfolder.conf > /etc/nginx/conf.d/default.conf
+  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_ACCESS_LOG_FORMAT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_XFRAME_OPTION_VALUE} ${NGINX_HSTS_HEADER}' < /templates/subfolder.conf > /etc/nginx/conf.d/default.conf
 fi
 
 # Handle robots.txt and sitemap directive
@@ -344,7 +344,7 @@ if [ "${NGINX_REDIRECT_FROM_TO_WWW}" -eq 1 ] && [ "${NGINX_DEFAULT_SERVER_NAME}"
       print "/etc/nginx/conf.d/from-to-www.conf - Creating a redirect from ${DOMAIN_FROM} to ${DOMAIN_TO}"
       # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
       DOMAIN_FROM=${DOMAIN_FROM} DOMAIN_TO=${DOMAIN_TO} \
-        envsubst '${DOMAIN_FROM} ${DOMAIN_TO} ${NGINX_DEFAULT_SERVER_PORT} ${DEFAULT_SERVER} ${NGINX_HSTS_HEADER}' < /templates/from-to-www.conf.tpl \
+        envsubst '${DOMAIN_FROM} ${DOMAIN_TO} ${NGINX_DEFAULT_SERVER_PORT} ${DEFAULT_SERVER} ${NGINX_ACCESS_LOG_FORMAT} ${NGINX_HSTS_HEADER}' < /templates/from-to-www.conf.tpl \
         | tee -a /etc/nginx/conf.d/from-to-www.conf >/dev/null
     else
       print "/etc/nginx/conf.d/from-to-www.conf - Skipping redirect from ${DOMAIN_FROM} to ${DOMAIN_TO} because it already exists"
