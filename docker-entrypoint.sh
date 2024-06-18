@@ -73,9 +73,13 @@ if [ -n "${NGINX_BASIC_AUTH_USER}" ] && [ -n "${NGINX_BASIC_AUTH_PASS}" ]; then
 fi
 
 # Activate the forbidden locations when the environment is not local
+NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE=${NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE:-"200"}
+export NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE
 if [ "${ENV:-}" != "loc" ]; then
   print "Activating the forbidden locations"
-  cp /templates/fragments/005-forbidden-locations.conf /etc/nginx/conf.d/fragments/005-forbidden-locations.conf
+  # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
+  envsubst '${NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE}' < /templates/fragments/005-forbidden-locations.conf > /etc/nginx/conf.d/fragments/005-forbidden-locations.conf
+  cat /etc/nginx/conf.d/fragments/005-forbidden-locations.conf
 fi
 
 # Activate HSTS header (default: off)
