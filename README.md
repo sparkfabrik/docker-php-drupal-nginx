@@ -104,6 +104,7 @@ The entrypoint file contains a list of environment variables that will be replac
 - `NGINX_CLIENT_MAX_BODY_SIZE`: the maximum allowed size for the client request body (default: `200M`)
 - `NGINX_CORS_ENABLED`: enable cors for `/` path and the caller origin header represented by `$http_origin` nginx variable (<https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin>) (default: `0`)
 - `NGINX_CORS_DOMAINS`: a list of CORS enabled domains to activate cors just for the specified ones (no default provided)
+- `NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE`: a valid return code used as return value when the forbidden locations are hitted (default `200`)
 
 ## Rootless feature
 
