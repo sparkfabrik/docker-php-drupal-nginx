@@ -244,13 +244,13 @@ if [ "${NGINX_GZIP_ENABLE}" = 1 ]; then
   cp /templates/gzip.conf /etc/nginx/conf.d/gzip.conf
 fi
 
-# shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_ACCESS_LOG_FORMAT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_XFRAME_OPTION_VALUE} ${NGINX_HSTS_HEADER} ${NGINX_CSP_HEADER}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
-
 if [ "${NGINX_SUBFOLDER}" != 0 ]; then
-  # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_ACCESS_LOG_FORMAT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_XFRAME_OPTION_VALUE} ${NGINX_HSTS_HEADER}' < /templates/subfolder.conf > /etc/nginx/conf.d/default.conf
+  print "Activating subfolder configuration"
+  sed -e '/#subfolder/r /templates/subfolder.conf' -i /templates/default.conf;
 fi
+
+# shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
+envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_ACCESS_LOG_FORMAT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_XFRAME_OPTION_VALUE} ${NGINX_HSTS_HEADER} ${NGINX_CSP_HEADER}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
 
 # Handle robots.txt and sitemap directive
 ROBOTS_PATH=${NGINX_DEFAULT_ROOT}/robots.txt
