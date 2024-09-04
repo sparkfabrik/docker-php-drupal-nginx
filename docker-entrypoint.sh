@@ -246,7 +246,10 @@ fi
 
 if [ "${NGINX_SUBFOLDER}" != 0 ]; then
   print "Activating subfolder configuration"
-  sed -e '/#subfolder/r /templates/subfolder.conf' -i /templates/default.conf;
+  if ! sed -e '/#subfolder/r /templates/subfolder.conf' -i /templates/default.conf; then
+    echo "Error: Failed to apply subfolder configuration" >&2
+    exit 1
+  fi
 fi
 
 # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
