@@ -9,6 +9,7 @@ env:
   IMAGE_NAME: docker-php-drupal-nginx
   TAG_D8: d8
   TAG_D8_RL: d8-rootless
+  PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
   test:
@@ -16,33 +17,35 @@ jobs:
       matrix:
         version:
           [
+            1.30.2-alpine-slim,
             1.26.0-alpine-slim,
             1.25.5-alpine-slim,
             1.25.3-alpine-slim,
             1.25.1-alpine-slim,
-            1.23.3-alpine-slim,
-            1.23.3-alpine,
-            1.23.1-alpine,
           ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build images
         run: |
           docker buildx build --load . \
             --file Dockerfile \
+            --cache-from type=gha,scope=${{ matrix.version }}-root \
+            --cache-to type=gha,mode=max,scope=${{ matrix.version }}-root \
             --tag $IMAGE_NAME:${{ matrix.version }}.d8 \
             --build-arg NGINX_IMAGE_TAG=${{ matrix.version }} \
             --build-arg user=root
           docker buildx build --load . \
             --file Dockerfile \
+            --cache-from type=gha,scope=${{ matrix.version }}-rootless \
+            --cache-to type=gha,mode=max,scope=${{ matrix.version }}-rootless \
             --tag $IMAGE_NAME:${{ matrix.version }}.d8-rootless \
             --build-arg NGINX_IMAGE_TAG=${{ matrix.version }} \
             --build-arg user=1001
@@ -59,33 +62,31 @@ jobs:
       matrix:
         version:
           [
+            1.30.2-alpine-slim,
             1.26.0-alpine-slim,
             1.25.5-alpine-slim,
             1.25.3-alpine-slim,
             1.25.1-alpine-slim,
-            1.23.3-alpine-slim,
-            1.23.3-alpine,
-            1.23.1-alpine,
           ]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/feature/d8'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Refs https://github.com/docker/login-action#github-container-registry
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build and push images to GitHub Container Registry
         run: |
@@ -93,21 +94,22 @@ jobs:
           # Change all uppercase to lowercase.
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           echo IMAGE_ID=$IMAGE_ID
-          PLATFORMS="${{ matrix.version == '1.13.6-alpine' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}"
           echo PLATFORMS=$PLATFORMS
           docker buildx build --push . --platform "$PLATFORMS" \
             --file Dockerfile \
+            --cache-from type=gha,scope=${{ matrix.version }}-root \
             --tag $IMAGE_ID:${{ matrix.version }}.d8 \
             --build-arg NGINX_IMAGE_TAG=${{ matrix.version }} \
             --build-arg user=root
           docker buildx build --push . --platform "$PLATFORMS" \
             --file Dockerfile \
+            --cache-from type=gha,scope=${{ matrix.version }}-rootless \
             --tag $IMAGE_ID:${{ matrix.version }}.d8-rootless \
             --build-arg NGINX_IMAGE_TAG=${{ matrix.version }} \
             --build-arg user=1001
 
       - name: Push d8 tag
-        if: ${{ matrix.version == '1.13.6-alpine' }}
+        if: ${{ matrix.version == '1.30.2-alpine-slim' }}
         run: |
           IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
           # Change all uppercase to lowercase.

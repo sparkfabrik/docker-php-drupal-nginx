@@ -1,4 +1,4 @@
-ARG NGINX_IMAGE_TAG=1.25.3-alpine-slim
+ARG NGINX_IMAGE_TAG=1.30.2-alpine-slim
 
 FROM nginx:${NGINX_IMAGE_TAG}
 
@@ -30,7 +30,7 @@ RUN chmod +x /docker-entrypoint.sh && \
     chmod 775 /var/log/nginx && \
     mkdir -p /var/run/nginx && \
     chmod 775 /var/run/nginx && \
-    sed -i 's|/var/run/nginx.pid|/var/run/nginx/nginx.pid|g' /etc/nginx/nginx.conf && \
+    sed -i 's|pid .*nginx\.pid;|pid /var/run/nginx/nginx.pid;|' /etc/nginx/nginx.conf && \
     find /templates -type d -exec chmod 775 {} + && \
     chmod 664 /etc/nginx/fastcgi.conf && \
     chmod 664 /etc/nginx/conf.d/default.conf
