@@ -5,7 +5,7 @@ set -e
 
 BASE="$(dirname "${0}")"
 IMAGE_NAME=${IMAGE_NAME:-sparkfabrik/docker-php-drupal-nginx}
-IMAGE_TAG=${IMAGE_TAG:-1.13.6-alpine.d8}
+IMAGE_TAG=${IMAGE_TAG:-1.30.2-alpine-slim.d8}
 IMAGE_USER=${IMAGE_USER:-root}
 BASE_TESTS_PORT=${BASE_TESTS_PORT:-80}
 OVERRIDES_NGINX_PORT=${OVERRIDES_NGINX_PORT:-4321}
