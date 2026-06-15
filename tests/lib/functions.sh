@@ -485,13 +485,24 @@ get_http_test_output() {
   fi
 
   debug "Get the data: docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb ${HTTPIE_ADDITIONAL_OPTIONS} GET ${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH} ${HTTPIE_REQ_HEADERS}"
-  # shellcheck disable=SC2086
-  DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb ${HTTPIE_ADDITIONAL_OPTIONS} GET "${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH}" ${HTTPIE_REQ_HEADERS})
-  #shellcheck disable=SC2181
-  if [ $? -ne 0 ]; then
-    echo -e "Failed to get the data"
-    exit 11
-  fi
+
+  # The container is started detached just before this call, so the first
+  # request can race nginx still binding its socket (connection refused/host
+  # unreachable). Retry the request until it connects, then fail loudly.
+  HTTP_TEST_ATTEMPTS=15
+  HTTP_TEST_ATTEMPT=1
+  while : ; do
+    # shellcheck disable=SC2086
+    DOCKER_TEST_OUTPUT=$(docker run --rm ${DOCKER_TEST_IMAGE} --ignore-stdin -p HhBb ${HTTPIE_ADDITIONAL_OPTIONS} GET "${DOCKER_TEST_PROTO}://${DOCKER_TEST_IP}:${DOCKER_TEST_PORT}/${DOCKER_TEST_PATH}" ${HTTPIE_REQ_HEADERS}) && break
+    if [ "${HTTP_TEST_ATTEMPT}" -ge "${HTTP_TEST_ATTEMPTS}" ]; then
+      echo -e "Failed to get the data after ${HTTP_TEST_ATTEMPTS} attempts"
+      docker logs "${CONTAINER_ID}"
+      exit 11
+    fi
+    debug "Request failed (attempt ${HTTP_TEST_ATTEMPT}/${HTTP_TEST_ATTEMPTS}); nginx may still be starting, retrying in 1s"
+    HTTP_TEST_ATTEMPT=$((HTTP_TEST_ATTEMPT + 1))
+    sleep 1
+  done
 }
 
 parse_http_test_output() {
