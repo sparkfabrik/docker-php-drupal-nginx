@@ -9,68 +9,100 @@ env:
   IMAGE_NAME: docker-php-drupal-nginx
   TAG_D8: d8
   TAG_D8_RL: d8-rootless
-  PLATFORMS: linux/amd64,linux/arm64
+  # Single source of truth for the nginx base versions built across every job.
+  # Add or remove a version here and the test, build and merge matrices follow.
+  NGINX_TAGS: >-
+    [
+      "1.30.2-alpine-slim",
+      "1.26.0-alpine-slim",
+      "1.25.5-alpine-slim",
+      "1.25.3-alpine-slim",
+      "1.25.1-alpine-slim"
+    ]
+  # The version whose images also receive the rolling :d8 / :d8-rootless tags.
+  PRIMARY_TAG: "1.30.2-alpine-slim"
+
+# Least-privilege token: read the repo for checkout, push images to GHCR.
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-  test:
-    strategy:
-      matrix:
-        version:
-          [
-            1.30.2-alpine-slim,
-            1.26.0-alpine-slim,
-            1.25.5-alpine-slim,
-            1.25.3-alpine-slim,
-            1.25.1-alpine-slim,
-          ]
+  prepare:
     runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.set.outputs.tags }}
+    steps:
+      - id: set
+        # The `env` context is not available to `strategy.matrix` expressions, so
+        # surface NGINX_TAGS as a job output that downstream matrices can read.
+        run: |
+          TAGS=$(jq -c . <<< "${NGINX_TAGS}")
+          echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: prepare
+    runs-on: ubuntu-latest
+    name: test ${{ matrix.version }}${{ matrix.flavour }}
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ${{ fromJSON(needs.prepare.outputs.tags) }}
+        flavour: ["", "-rootless"]
     steps:
       - uses: actions/checkout@v6
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
+      # The test job builds a single native (amd64) image with --load, so it
+      # does not need QEMU.
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Build images
+      - name: Build and test the image
+        env:
+          SCOPE: ${{ matrix.version }}${{ matrix.flavour }}
         run: |
+          USER_ARG="root"
+          IMAGE_USER="root"
+          BASE_TESTS_PORT="80"
+          if [ "${{ matrix.flavour }}" = "-rootless" ]; then
+            USER_ARG="1001"
+            IMAGE_USER="unknown uid 1001"
+            BASE_TESTS_PORT="8080"
+          fi
+
           docker buildx build --load . \
             --file Dockerfile \
-            --cache-from type=gha,scope=${{ matrix.version }}-root \
-            --cache-to type=gha,mode=max,scope=${{ matrix.version }}-root \
-            --tag $IMAGE_NAME:${{ matrix.version }}.d8 \
+            --cache-from type=gha,scope=${SCOPE} \
+            --cache-to type=gha,mode=max,scope=${SCOPE} \
+            --tag "${IMAGE_NAME}:${{ matrix.version }}.d8${{ matrix.flavour }}" \
             --build-arg NGINX_IMAGE_TAG=${{ matrix.version }} \
-            --build-arg user=root
-          docker buildx build --load . \
-            --file Dockerfile \
-            --cache-from type=gha,scope=${{ matrix.version }}-rootless \
-            --cache-to type=gha,mode=max,scope=${{ matrix.version }}-rootless \
-            --tag $IMAGE_NAME:${{ matrix.version }}.d8-rootless \
-            --build-arg NGINX_IMAGE_TAG=${{ matrix.version }} \
-            --build-arg user=1001
+            --build-arg user="${USER_ARG}"
 
-      - name: Test images
-        shell: bash {0}
-        run: |
-          IMAGE_TAG=${{ matrix.version }}.d8 ./tests/tests.sh
-          IMAGE_TAG=${{ matrix.version }}.d8-rootless IMAGE_USER="unknown uid 1001" BASE_TESTS_PORT="8080" ./tests/tests.sh
+          IMAGE_TAG="${{ matrix.version }}.d8${{ matrix.flavour }}" \
+            IMAGE_USER="${IMAGE_USER}" \
+            BASE_TESTS_PORT="${BASE_TESTS_PORT}" \
+            ./tests/tests.sh
 
-  deploy:
-    needs: test
-    strategy:
-      matrix:
-        version:
-          [
-            1.30.2-alpine-slim,
-            1.26.0-alpine-slim,
-            1.25.5-alpine-slim,
-            1.25.3-alpine-slim,
-            1.25.1-alpine-slim,
-          ]
-    runs-on: ubuntu-latest
+  build:
+    needs: [prepare, test]
     if: github.ref == 'refs/heads/feature/d8'
-
+    runs-on: ${{ matrix.platform.runner }}
+    name: build ${{ matrix.version }}${{ matrix.flavour }} (${{ matrix.platform.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ${{ fromJSON(needs.prepare.outputs.tags) }}
+        flavour: ["", "-rootless"]
+        # Each platform is a self-contained object (name/runner/arch) so the
+        # runner and arch are always defined; amd64 builds on ubuntu-latest and
+        # arm64 on a native ubuntu-24.04-arm runner (no QEMU emulation).
+        platform:
+          - name: linux/amd64
+            runner: ubuntu-latest
+            arch: amd64
+          - name: linux/arm64
+            runner: ubuntu-24.04-arm
+            arch: arm64
     steps:
       - uses: actions/checkout@v6
 
@@ -82,42 +114,105 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push image digest
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}
+          # Change all uppercase to lowercase.
+          IMAGE_ID=$(echo "${IMAGE_ID}" | tr '[A-Z]' '[a-z]')
+          echo "IMAGE_ID=${IMAGE_ID}"
+
+          SCOPE="${{ matrix.version }}${{ matrix.flavour }}-${{ matrix.platform.arch }}"
+          USER_ARG="root"
+          if [ "${{ matrix.flavour }}" = "-rootless" ]; then
+            USER_ARG="1001"
+          fi
+
+          # Build single-arch and push by digest (no tag); the merge job
+          # assembles the final multi-arch tags from the per-arch digests.
+          docker buildx build --push . \
+            --file Dockerfile \
+            --platform ${{ matrix.platform.name }} \
+            --build-arg NGINX_IMAGE_TAG=${{ matrix.version }} \
+            --build-arg user="${USER_ARG}" \
+            --cache-from type=gha,scope=${SCOPE} \
+            --cache-to type=gha,mode=max,scope=${SCOPE} \
+            --output type=image,name=${IMAGE_ID},push-by-digest=true,name-canonical=true \
+            --metadata-file image-meta.json
+
+          mkdir -p digests
+          # -e fails the job if the digest key is absent, instead of writing a
+          # literal "null" that would later produce an invalid image@null ref.
+          jq -e -r '.["containerimage.digest"]' image-meta.json > "digests/image-${{ matrix.platform.arch }}"
+
+      - name: Upload digests
+        uses: actions/upload-artifact@v4
+        with:
+          # Use a non-empty flavour label ("default"/"rootless") so the
+          # non-rootless artifact name is not a prefix of the rootless one;
+          # otherwise the merge download glob would match both flavours.
+          name: digests-${{ matrix.version }}-${{ matrix.flavour == '-rootless' && 'rootless' || 'default' }}-${{ matrix.platform.arch }}
+          path: digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    needs: [prepare, build]
+    if: github.ref == 'refs/heads/feature/d8'
+    runs-on: ubuntu-latest
+    name: merge ${{ matrix.version }}${{ matrix.flavour }}
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ${{ fromJSON(needs.prepare.outputs.tags) }}
+        flavour: ["", "-rootless"]
+    steps:
+      # Refs https://github.com/docker/login-action#github-container-registry
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Build and push images to GitHub Container Registry
-        run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
-          # Change all uppercase to lowercase.
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo IMAGE_ID=$IMAGE_ID
-          echo PLATFORMS=$PLATFORMS
-          docker buildx build --push . --platform "$PLATFORMS" \
-            --file Dockerfile \
-            --cache-from type=gha,scope=${{ matrix.version }}-root \
-            --tag $IMAGE_ID:${{ matrix.version }}.d8 \
-            --build-arg NGINX_IMAGE_TAG=${{ matrix.version }} \
-            --build-arg user=root
-          docker buildx build --push . --platform "$PLATFORMS" \
-            --file Dockerfile \
-            --cache-from type=gha,scope=${{ matrix.version }}-rootless \
-            --tag $IMAGE_ID:${{ matrix.version }}.d8-rootless \
-            --build-arg NGINX_IMAGE_TAG=${{ matrix.version }} \
-            --build-arg user=1001
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: digests
+          pattern: digests-${{ matrix.version }}-${{ matrix.flavour == '-rootless' && 'rootless' || 'default' }}-*
+          merge-multiple: true
 
-      - name: Push d8 tag
-        if: ${{ matrix.version == '1.30.2-alpine-slim' }}
+      - name: Create and push multi-arch manifest
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
-          # Change all uppercase to lowercase.
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo IMAGE_ID=$IMAGE_ID
-          docker pull $IMAGE_ID:${{ matrix.version }}.d8
-          docker tag $IMAGE_ID:${{ matrix.version }}.d8 $IMAGE_ID:$TAG_D8
-          docker push $IMAGE_ID:$TAG_D8
-          docker pull $IMAGE_ID:${{ matrix.version }}.d8-rootless
-          docker tag $IMAGE_ID:${{ matrix.version }}.d8-rootless $IMAGE_ID:$TAG_D8_RL
-          docker push $IMAGE_ID:$TAG_D8_RL
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}
+          IMAGE_ID=$(echo "${IMAGE_ID}" | tr '[A-Z]' '[a-z]')
+          TAG="${{ matrix.version }}.d8${{ matrix.flavour }}"
+
+          # Do not let an unmatched glob expand to the literal pattern: if the
+          # digests were not downloaded the ref array stays empty and we fail loudly.
+          shopt -s nullglob
+
+          refs=()
+          for f in digests/image-*; do refs+=("${IMAGE_ID}@$(cat "${f}")"); done
+
+          if [ "${#refs[@]}" -eq 0 ]; then
+            echo "No digests found for ${TAG}; expected one digest per architecture." >&2
+            exit 1
+          fi
+
+          # Versioned tag: :<version>.d8[-rootless]
+          docker buildx imagetools create -t "${IMAGE_ID}:${TAG}" "${refs[@]}"
+
+          # Rolling tag from the primary version: :d8 / :d8-rootless
+          if [ "${{ matrix.version }}" = "${PRIMARY_TAG}" ]; then
+            ROLLING="${TAG_D8}"
+            if [ "${{ matrix.flavour }}" = "-rootless" ]; then
+              ROLLING="${TAG_D8_RL}"
+            fi
+            docker buildx imagetools create -t "${IMAGE_ID}:${ROLLING}" "${refs[@]}"
+          fi
