@@ -3,6 +3,22 @@
 This docker image is designed to run PHP applications, with some
 specific configuration for Drupal 8.
 
+## Supported tags and architectures
+
+Images are published to GHCR for each nginx base version listed in the
+workflow's `NGINX_TAGS` variable, currently `1.30.2-alpine-slim` (the default),
+`1.26.0-alpine-slim`, `1.25.5-alpine-slim`, `1.25.3-alpine-slim` and
+`1.25.1-alpine-slim`. Every tag is built as a multi-arch manifest for
+`linux/amd64` and `linux/arm64`.
+
+Two flavours are published per version:
+
+- `:<version>.d8` — runs as `root`.
+- `:<version>.d8-rootless` — runs as the unprivileged user `1001` (see the
+  [Rootless feature](#rootless-feature) section).
+
+The primary version also publishes the rolling `:d8` and `:d8-rootless` tags.
+
 ## Customizations
 
 NGINX is configured dynamically by generating a `default.conf file.
@@ -105,6 +121,64 @@ The entrypoint file contains a list of environment variables that will be replac
 - `NGINX_CORS_ENABLED`: enable cors for `/` path and the caller origin header represented by `$http_origin` nginx variable (<https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin>) (default: `0`)
 - `NGINX_CORS_DOMAINS`: a list of CORS enabled domains to activate cors just for the specified ones (no default provided)
 - `NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE`: a valid return code used as return value when the forbidden locations are hitted (default `200`)
+
+## Features
+
+Each feature below is driven by the environment variables documented in the
+[Env variables](#env-variables) section; this is a functional overview of what
+they enable.
+
+### Structured logging
+
+Access logs can be emitted in two formats, selected by `NGINX_ACCESS_LOG_FORMAT`:
+`main` (the classic nginx combined format) and `structured` (a JSON-style format
+that includes the `X-Forwarded-For` value, suitable for log aggregation). When
+`ENV` is not `loc` the structured format is enabled automatically across all
+server definitions.
+
+### CORS
+
+Set `NGINX_CORS_ENABLED=1` to emit CORS headers for the caller origin
+(`$http_origin`). To allow only specific origins, list them in
+`NGINX_CORS_DOMAINS`; CORS headers are then sent only when the request origin
+matches one of the configured domains.
+
+### Forbidden locations
+
+Sensitive files are denied at the nginx level, including `composer.json`,
+`composer.lock`, `package.json` and `package-lock.json`. The response code is
+configurable through `NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE` (default `200`). The
+block is enabled automatically when `ENV` is not `loc`.
+
+### Object storage (s3fs) assets
+
+When Drupal serves files from an object storage bucket through s3fs, nginx can
+proxy the asset URLs to the bucket. `NGINX_OSB_BUCKET` and `NGINX_OSB_PUBLIC_PATH`
+configure the bucket proxy, `NGINX_OSB_RESOLVER` sets the DNS resolver used to
+reach it, and `NGINX_OSB_RESOLVER_ENFORCE_IPV6_OFF` enforces `ipv6=off` on that
+resolver. Bucket errors coming from the storage service are suppressed, and the
+Google GCS response headers are hidden by default (`HIDE_GOOGLE_GCS_HEADERS`).
+
+Starting from Drupal 10.1, the lazy assets aggregator can stream aggregated
+assets from the bucket: enable it with `NGINX_ASSETS_STREAM_OVER_S3=1` and
+configure `NGINX_OSB_ASSETS_PATH` and `DRUPAL_ASSETS_FILES_PATH`.
+
+### robots.txt and sitemap
+
+When `SITEMAP_URL` is set, its value is written as a `Sitemap:` directive into
+the served `robots.txt` for SEO purposes. The `robots.txt` route can also be
+overridden by application (PHP) code.
+
+### `.well-known` handling
+
+Requests under `/.well-known` are restricted: only `.txt` files are served and
+PHP execution is denied, to avoid leaking application source through that path.
+
+### HSTS in custom server fragments
+
+HSTS is controlled by the `NGINX_HSTS_*` variables. To also apply the
+`Strict-Transport-Security` header to a custom server defined in a fragment, add
+the `#hstsheader` annotation to that server definition.
 
 ## Rootless feature
 
