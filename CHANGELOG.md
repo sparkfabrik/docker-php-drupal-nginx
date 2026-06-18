@@ -61,6 +61,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   path.
 - The rolling `:d8` / `:d8-rootless` tags, which were gated on a base version
   absent from the build matrix and therefore never published.
+- Intermittent stalled FastCGI requests on nginx >= 1.29.7 (including the
+  default `1.30.2` base). nginx 1.29.7 enabled upstream `keepalive` by default,
+  which combined with the template's `fastcgi_keep_conn on` and an untuned
+  `upstream php` block made nginx reuse FastCGI connections PHP-FPM had already
+  closed, hanging requests until `fastcgi_read_timeout`. `fastcgi_keep_conn` is
+  now set to `off`, restoring the per-request connection behaviour that held on
+  nginx < 1.29.7.
 
 ### Security
 
