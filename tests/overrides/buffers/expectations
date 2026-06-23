@@ -1,0 +1,8 @@
+FILE_TO_SEARCH=/etc/nginx/conf.d/000-custom.conf
+REGEX_TO_FIND=^map_hash_max_size 32768;
+FILE_TO_SEARCH=/etc/nginx/conf.d/000-custom.conf
+REGEX_TO_FIND=^map_hash_bucket_size 256;
+FILE_TO_SEARCH=/etc/nginx/conf.d/000-custom.conf
+REGEX_TO_FIND=^large_client_header_buffers 4 32k;
+FILE_TO_SEARCH=/etc/nginx/conf.d/000-custom.conf
+REGEX_TO_FIND=^client_header_buffer_size 2k;

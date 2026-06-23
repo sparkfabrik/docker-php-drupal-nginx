@@ -151,6 +151,10 @@ export NGINX_XFRAME_OPTION_VALUE="${NGINX_XFRAME_OPTION_VALUE:-SAMEORIGIN}"
 
 # Custom nginx configuration.
 export NGINX_CLIENT_MAX_BODY_SIZE="${NGINX_CLIENT_MAX_BODY_SIZE:-200M}"
+export NGINX_MAP_HASH_MAX_SIZE="${NGINX_MAP_HASH_MAX_SIZE:-4096}"
+export NGINX_MAP_HASH_BUCKET_SIZE="${NGINX_MAP_HASH_BUCKET_SIZE:-512}"
+export NGINX_CLIENT_HEADER_BUFFER_SIZE="${NGINX_CLIENT_HEADER_BUFFER_SIZE:-1k}"
+export NGINX_LARGE_CLIENT_HEADER_BUFFERS="${NGINX_LARGE_CLIENT_HEADER_BUFFERS:-4 8k}"
 
 # Enforce IPv6 off if NGINX_OSB_RESOLVER_ENFORCE_IPV6_OFF is set to 1
 if [ "${NGINX_OSB_RESOLVER_ENFORCE_IPV6_OFF}" = "1" ] && ! echo "${NGINX_OSB_RESOLVER}" | grep -q "ipv6=off"; then
@@ -319,7 +323,7 @@ export SERVER_TOKEN_TOGGLE
 # Process custom configuration
 cp /etc/nginx/conf.d/000-custom.conf /etc/nginx/conf.d/000-custom.conf.tmp
 # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-envsubst '${SERVER_TOKEN_TOGGLE} ${NGINX_CLIENT_MAX_BODY_SIZE}' < /etc/nginx/conf.d/000-custom.conf.tmp > /etc/nginx/conf.d/000-custom.conf
+envsubst '${SERVER_TOKEN_TOGGLE} ${NGINX_CLIENT_MAX_BODY_SIZE} ${NGINX_MAP_HASH_MAX_SIZE} ${NGINX_MAP_HASH_BUCKET_SIZE} ${NGINX_CLIENT_HEADER_BUFFER_SIZE} ${NGINX_LARGE_CLIENT_HEADER_BUFFERS}' < /etc/nginx/conf.d/000-custom.conf.tmp > /etc/nginx/conf.d/000-custom.conf
 
 # Hide project specific headers
 if [ -r /templates/fastcgi-hide-additional-headers.conf ]; then
