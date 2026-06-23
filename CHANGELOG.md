@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Configurable `map` hash sizing through `NGINX_MAP_HASH_MAX_SIZE` (default
+  `4096`) and `NGINX_MAP_HASH_BUCKET_SIZE` (default `512`). The new
+  `map_hash_max_size` default fixes the `could not build optimal map_hash`
+  startup warning.
+- Configurable client header buffers through `NGINX_CLIENT_HEADER_BUFFER_SIZE`
+  (default `1k`) and `NGINX_LARGE_CLIENT_HEADER_BUFFERS` (default `4 8k`), to
+  raise the header/cookie size limit when clients send oversized `Cookie`
+  headers (`400 Request Header Or Cookie Too Large`).
+
 - New `1.30.2-alpine-slim` nginx base image, which is now the default and the
   source of the rolling `:d8` / `:d8-rootless` tags. Earlier `alpine-slim`
   versions (`1.25.1`, `1.25.3`, `1.25.5`, `1.26.0`) are also published.
