@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- New `1.30.3-alpine-slim` nginx base image.
 - Configurable `map` hash sizing through `NGINX_MAP_HASH_MAX_SIZE` (default
   `4096`) and `NGINX_MAP_HASH_BUCKET_SIZE` (default `512`). The new
   `map_hash_max_size` default fixes the `could not build optimal map_hash`
@@ -17,9 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (default `1k`) and `NGINX_LARGE_CLIENT_HEADER_BUFFERS` (default `4 8k`), to
   raise the header/cookie size limit when clients send oversized `Cookie`
   headers (`400 Request Header Or Cookie Too Large`).
-- New `1.30.2-alpine-slim` nginx base image, which is now the default and the
-  source of the rolling `:d8` / `:d8-rootless` tags. Earlier `alpine-slim`
-  versions (`1.25.1`, `1.25.3`, `1.25.5`, `1.26.0`) are also published.
+- New `1.30.2-alpine-slim` nginx base image. Earlier `alpine-slim` versions
+  (`1.25.1`, `1.25.3`, `1.25.5`, `1.26.0`) are also published.
 - Basic authentication support through the `NGINX_BASIC_AUTH_USER`,
   `NGINX_BASIC_AUTH_PASS`, `NGINX_BASIC_AUTH_REALM` and `NGINX_BASIC_AUTH_FILE`
   environment variables, with `NGINX_BASIC_AUTH_EXCLUDE_LOCATIONS` and
@@ -52,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The default base image is now `1.30.2-alpine-slim`; nginx versions older than
+- The default base image is now `1.30.3-alpine-slim`; nginx versions older than
   `1.25.1` are no longer built.
 - Structured logging is configured across all server definitions, and the log
   format includes the `X-Forwarded-For` value.

@@ -1,4 +1,4 @@
-ARG NGINX_IMAGE_TAG=1.30.2-alpine-slim
+ARG NGINX_IMAGE_TAG=1.30.3-alpine-slim
 
 FROM nginx:${NGINX_IMAGE_TAG}
 
