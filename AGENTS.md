@@ -40,9 +40,9 @@ make all        # build + test, both root and rootless flavours
 Run a single tag/flavour:
 
 ```bash
-NGINX_IMAGE_TAG=1.30.2-alpine-slim BUILD_IMAGE_TAG_SUFFIX=d8 BUILD_IMAGE_USER=root \
+NGINX_IMAGE_TAG=1.30.3-alpine-slim BUILD_IMAGE_TAG_SUFFIX=d8 BUILD_IMAGE_USER=root \
   make base-build-template
-IMAGE_TAG=1.30.2-alpine-slim.d8 ./tests/tests.sh
+IMAGE_TAG=1.30.3-alpine-slim.d8 ./tests/tests.sh
 ```
 
 The set of base versions built locally lives in `IMAGE_TAGS` at the top of the

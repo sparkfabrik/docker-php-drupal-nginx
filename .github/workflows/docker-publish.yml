@@ -13,6 +13,7 @@ env:
   # Add or remove a version here and the test, build and merge matrices follow.
   NGINX_TAGS: >-
     [
+      "1.30.3-alpine-slim",
       "1.30.2-alpine-slim",
       "1.26.0-alpine-slim",
       "1.25.5-alpine-slim",
@@ -20,7 +21,7 @@ env:
       "1.25.1-alpine-slim"
     ]
   # The version whose images also receive the rolling :d8 / :d8-rootless tags.
-  PRIMARY_TAG: "1.30.2-alpine-slim"
+  PRIMARY_TAG: "1.30.3-alpine-slim"
 
 # Least-privilege token: read the repo for checkout, push images to GHCR.
 permissions:
