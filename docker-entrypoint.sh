@@ -230,11 +230,29 @@ if [ -n "${NGINX_OSB_BUCKET}" ] && [ ! -f "/etc/nginx/conf.d/fragments/011-osb-d
   fi
 fi
 
-# If we want to enable X-Frame Options header to indicate whether or not a browser should be allowed 
+# If we want to enable X-Frame Options header to indicate whether or not a browser should be allowed
 # to render a page in a <frame>, <iframe>, <embed> or <object>
 if [ "${NGINX_XFRAME_OPTION_ENABLE}" = 1 ]; then
   print "Enabling X-frame-Options Header"
   sed -e '/#securityheaders/r /templates/security-headers.conf' -i /templates/default.conf;
+fi
+
+# Activate the security response headers (default: off):
+# Referrer-Policy, Permissions-Policy, Cross-Origin-Opener-Policy,
+# Cross-Origin-Embedder-Policy and Cross-Origin-Resource-Policy.
+# Each value can be tuned per project through its *_VALUE variable; an empty
+# value skips that single header (nginx does not emit an add_header whose
+# value is an empty string).
+export NGINX_SECURITY_HEADERS_ENABLE="${NGINX_SECURITY_HEADERS_ENABLE:-0}"
+export NGINX_REFERRER_POLICY_VALUE="${NGINX_REFERRER_POLICY_VALUE-strict-origin-when-cross-origin}"
+export NGINX_PERMISSIONS_POLICY_VALUE="${NGINX_PERMISSIONS_POLICY_VALUE-accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()}"
+export NGINX_CROSS_ORIGIN_OPENER_POLICY_VALUE="${NGINX_CROSS_ORIGIN_OPENER_POLICY_VALUE-same-origin-allow-popups}"
+export NGINX_CROSS_ORIGIN_EMBEDDER_POLICY_VALUE="${NGINX_CROSS_ORIGIN_EMBEDDER_POLICY_VALUE-unsafe-none}"
+export NGINX_CROSS_ORIGIN_RESOURCE_POLICY_VALUE="${NGINX_CROSS_ORIGIN_RESOURCE_POLICY_VALUE-same-site}"
+if [ "${NGINX_SECURITY_HEADERS_ENABLE}" = 1 ]; then
+  print "Enabling security response headers"
+  sed -e '/#securityheaders/r /templates/response-security-headers.conf' -i /templates/default.conf;
+  sed -e '/#securityheaders/r /templates/response-security-headers.conf' -i /templates/subfolder.conf;
 fi
 
 if [ "${NGINX_HTTPSREDIRECT}" = 1 ]; then
@@ -249,11 +267,11 @@ if [ "${NGINX_GZIP_ENABLE}" = 1 ]; then
 fi
 
 # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_ACCESS_LOG_FORMAT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_XFRAME_OPTION_VALUE} ${NGINX_HSTS_HEADER} ${NGINX_CSP_HEADER}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
+envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_ACCESS_LOG_FORMAT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${DEFAULT_SERVER} ${NGINX_XFRAME_OPTION_VALUE} ${NGINX_HSTS_HEADER} ${NGINX_CSP_HEADER} ${NGINX_REFERRER_POLICY_VALUE} ${NGINX_PERMISSIONS_POLICY_VALUE} ${NGINX_CROSS_ORIGIN_OPENER_POLICY_VALUE} ${NGINX_CROSS_ORIGIN_EMBEDDER_POLICY_VALUE} ${NGINX_CROSS_ORIGIN_RESOURCE_POLICY_VALUE}' < /templates/default.conf > /etc/nginx/conf.d/default.conf
 
 if [ "${NGINX_SUBFOLDER}" != 0 ]; then
   # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_ACCESS_LOG_FORMAT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_XFRAME_OPTION_VALUE} ${NGINX_HSTS_HEADER}' < /templates/subfolder.conf > /etc/nginx/conf.d/default.conf
+  envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_ACCESS_LOG_FORMAT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_XFRAME_OPTION_VALUE} ${NGINX_HSTS_HEADER} ${NGINX_REFERRER_POLICY_VALUE} ${NGINX_PERMISSIONS_POLICY_VALUE} ${NGINX_CROSS_ORIGIN_OPENER_POLICY_VALUE} ${NGINX_CROSS_ORIGIN_EMBEDDER_POLICY_VALUE} ${NGINX_CROSS_ORIGIN_RESOURCE_POLICY_VALUE}' < /templates/subfolder.conf > /etc/nginx/conf.d/default.conf
 fi
 
 # Handle robots.txt and sitemap directive
@@ -280,8 +298,12 @@ sharp_replacement() {
       print "Enabling X-frame-Options Header"
       sed -e '/#securityheaders/r /templates/security-headers.conf' -i "$filename.tmp";
     fi
+    if [ "${NGINX_SECURITY_HEADERS_ENABLE}" = 1 ]; then
+      print "Enabling security response headers"
+      sed -e '/#securityheaders/r /templates/response-security-headers.conf' -i "$filename.tmp";
+    fi
     # shellcheck disable=SC2016 # The envsubst command needs to be executed without variable expansion
-    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER} ${NGINX_CORS_DOMAINS} ${NGINX_HSTS_HEADER} ${NGINX_XFRAME_OPTION_ENABLE} ${NGINX_ASSETS_STREAM_OVER_S3} ${NGINX_OSB_PUBLIC_PATH} ${NGINX_OSB_ASSETS_PATH} ${DRUPAL_ASSETS_FILES_PATH}' < "$filename.tmp" > "$filename"
+    envsubst '${PHP_HOST} ${PHP_PORT} ${NGINX_DEFAULT_SERVER_PORT} ${NGINX_DEFAULT_SERVER_NAME} ${NGINX_DEFAULT_ROOT} ${NGINX_SUBFOLDER} ${NGINX_SUBFOLDER_ESCAPED} ${NGINX_OSB_BUCKET} ${NGINX_OSB_RESOLVER} ${DRUPAL_PUBLIC_FILES_PATH} ${NGINX_CACHE_CONTROL_HEADER} ${NGINX_CORS_DOMAINS} ${NGINX_HSTS_HEADER} ${NGINX_XFRAME_OPTION_ENABLE} ${NGINX_ASSETS_STREAM_OVER_S3} ${NGINX_OSB_PUBLIC_PATH} ${NGINX_OSB_ASSETS_PATH} ${DRUPAL_ASSETS_FILES_PATH} ${NGINX_REFERRER_POLICY_VALUE} ${NGINX_PERMISSIONS_POLICY_VALUE} ${NGINX_CROSS_ORIGIN_OPENER_POLICY_VALUE} ${NGINX_CROSS_ORIGIN_EMBEDDER_POLICY_VALUE} ${NGINX_CROSS_ORIGIN_RESOURCE_POLICY_VALUE}' < "$filename.tmp" > "$filename"
     rm "${filename}.tmp"
   fi
 done

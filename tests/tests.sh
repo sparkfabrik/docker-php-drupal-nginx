@@ -93,6 +93,14 @@ print_title "Show sensitive headers (sensitive: yes - drupal: yes)"
 print_title "X-Frame-Options header Enabled (Default Value - SAMEORIGIN)"
 "${BASE}/image_verify.sh" --php-needed --source "${BASE}/overrides/headers/expectations-x-frame-options-enabled" --env-file "${BASE}/overrides/headers/envfile-x-frame-options-enabled" --http-port "${OVERRIDES_NGINX_PORT}" --http-path index.php --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
 
+# Security response headers enabled with default values
+print_title "Security response headers Enabled (default values)"
+"${BASE}/image_verify.sh" --php-needed --source "${BASE}/overrides/headers/expectations-security-headers-enabled" --env-file "${BASE}/overrides/headers/envfile-security-headers-enabled" --http-port "${OVERRIDES_NGINX_PORT}" --http-path index.php --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+# Security response headers enabled with a custom and an emptied value
+print_title "Security response headers Enabled (custom values)"
+"${BASE}/image_verify.sh" --php-needed --source "${BASE}/overrides/headers/expectations-security-headers-custom" --env-file "${BASE}/overrides/headers/envfile-security-headers-custom" --http-port "${OVERRIDES_NGINX_PORT}" --http-path index.php --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
 # HSTS enabled
 print_title "HSTS header Enabled"
 "${BASE}/image_verify.sh" --source "${BASE}/overrides/headers/expectations-hsts-enabled" --env-file "${BASE}/overrides/headers/envfile-hsts-enabled" --http-port "${OVERRIDES_NGINX_PORT}" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"

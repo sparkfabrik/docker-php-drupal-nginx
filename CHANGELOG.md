@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Security response headers (`Referrer-Policy`, `Permissions-Policy`,
+  `Cross-Origin-Opener-Policy`, `Cross-Origin-Embedder-Policy` and
+  `Cross-Origin-Resource-Policy`) through `NGINX_SECURITY_HEADERS_ENABLE`
+  (default `0`), with one `*_VALUE` variable per header to tune or skip
+  single headers.
 - New `1.30.3-alpine-slim` nginx base image.
 - Configurable `map` hash sizing through `NGINX_MAP_HASH_MAX_SIZE` (default
   `4096`) and `NGINX_MAP_HASH_BUCKET_SIZE` (default `512`). The new
