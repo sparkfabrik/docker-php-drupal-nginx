@@ -1,0 +1,2 @@
+HTTP_STATUS="403 Forbidden"
+HEADER_RES_Server=^nginx$

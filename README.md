@@ -155,10 +155,13 @@ matches one of the configured domains.
 
 ### Forbidden locations
 
-Sensitive files are denied at the nginx level, including `composer.json`,
-`composer.lock`, `package.json` and `package-lock.json`. The response code is
-configurable through `NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE` (default `200`). The
-block is enabled automatically when `ENV` is not `loc`.
+Sensitive files and Drupal administrative entry points are denied at the nginx
+level: `composer.json`, `composer.lock`, `package.json`, `package-lock.json`,
+`/core/install.php`, `/update.php` and the site settings files
+(`sites/<site>/settings.php` and `sites/<site>/settings.local.php`). The
+response code is configurable through `NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE`
+(default `200`; set it to `403` to actually forbid these paths). The block is
+enabled automatically when `ENV` is not `loc`.
 
 ### Object storage (s3fs) assets
 
