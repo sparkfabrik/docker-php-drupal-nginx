@@ -1,0 +1,6 @@
+HTTP_STATUS="200 OK"
+HEADER_RES_Referrer-Policy=^strict-origin-when-cross-origin$
+HEADER_RES_Permissions-Policy=^accelerometer=\(\), camera=\(\), display-capture=\(\), geolocation=\(\), gyroscope=\(\), magnetometer=\(\), microphone=\(\), payment=\(\), usb=\(\)$
+HEADER_RES_Cross-Origin-Opener-Policy=^same-origin-allow-popups$
+HEADER_RES_Cross-Origin-Embedder-Policy=^unsafe-none$
+HEADER_RES_Cross-Origin-Resource-Policy=^same-site$

@@ -1,0 +1,5 @@
+HTTP_STATUS="200 OK"
+HEADER_RES_Referrer-Policy=^no-referrer$
+HEADER_RES_Cross-Origin-Resource-Policy=^$
+HEADER_RES_Cross-Origin-Opener-Policy=^same-origin-allow-popups$
+HEADER_RES_Cross-Origin-Embedder-Policy=^unsafe-none$
