@@ -144,3 +144,17 @@ print_title "Basic Auth Test - No auth configured but request uri is not protect
 
 print_title "Basic Auth Test - Auth configured"
 "${BASE}/image_verify.sh" --source "${BASE}/overrides/basic-auth/expectations-ok" --env-file "${BASE}/overrides/basic-auth/envfile-ok" --http-port "${OVERRIDES_NGINX_PORT}" --req-header-auth "user:pass" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+# Forbidden locations tests: install.php, update.php and settings.php must
+# return the configured forbidden status code (403 here) when ENV is not local.
+print_title "Forbidden locations - /core/install.php"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/forbidden-locations/expectations-403" --env-file "${BASE}/overrides/forbidden-locations/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path core/install.php --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "Forbidden locations - /update.php"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/forbidden-locations/expectations-403" --env-file "${BASE}/overrides/forbidden-locations/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path update.php --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "Forbidden locations - /sites/default/settings.php"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/forbidden-locations/expectations-403" --env-file "${BASE}/overrides/forbidden-locations/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path sites/default/settings.php --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "Forbidden locations - /sites/default/settings.local.php"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/forbidden-locations/expectations-403" --env-file "${BASE}/overrides/forbidden-locations/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path sites/default/settings.local.php --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"

@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Cross-Origin-Resource-Policy`) through `NGINX_SECURITY_HEADERS_ENABLE`
   (default `0`), with one `*_VALUE` variable per header to tune or skip
   single headers.
+- Drupal settings files (`sites/<site>/settings.php` and
+  `sites/<site>/settings.local.php`) to the forbidden locations, alongside the
+  existing `/core/install.php` and `/update.php` blocks. Without this, the
+  generic PHP location passed `settings.php` to FastCGI and returned a `500`
+  instead of forbidding it. The response code follows
+  `NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE`.
+
 - New `1.30.3-alpine-slim` nginx base image.
 - Configurable `map` hash sizing through `NGINX_MAP_HASH_MAX_SIZE` (default
   `4096`) and `NGINX_MAP_HASH_BUCKET_SIZE` (default `512`). The new
