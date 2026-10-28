@@ -1,0 +1,2 @@
+HTTP_STATUS="502 Bad Gateway"
+HEADER_RES_Server=^nginx$

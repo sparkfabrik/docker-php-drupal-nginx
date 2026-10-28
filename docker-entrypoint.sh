@@ -111,6 +111,14 @@ if [ -n "${NGINX_CSP_HEADER}" ]; then
   sed -e '/#cspheader/r /templates/csp.conf' -i /templates/default.conf;
 fi
 
+# Redirect paths ending with encoded control characters or spaces to the clean
+# URL, and reject control characters elsewhere in the path (default: on).
+export NGINX_URI_CONTROL_CHARS_GUARD="${NGINX_URI_CONTROL_CHARS_GUARD:-1}"
+if [ "${NGINX_URI_CONTROL_CHARS_GUARD}" = "1" ]; then
+  sed -e '/#uricontrolchars/r /templates/uri-control-chars.conf' -i /templates/default.conf;
+  sed -e '/#uricontrolchars/r /templates/uri-control-chars.conf' -i /templates/subfolder.conf;
+fi
+
 # If the variable NGINX_DEFAULT_SERVER_NAME is left empty
 # (in this case the default value _ will be used), the default.conf
 # server declaration will be declared as the default catch all server.

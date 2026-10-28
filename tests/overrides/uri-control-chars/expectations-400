@@ -1,0 +1,2 @@
+HTTP_STATUS="400 Bad Request"
+HEADER_RES_Server=^nginx$

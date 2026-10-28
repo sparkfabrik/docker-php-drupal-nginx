@@ -146,6 +146,22 @@ print_title "Basic Auth Test - Auth configured"
 "${BASE}/image_verify.sh" --source "${BASE}/overrides/basic-auth/expectations-ok" --env-file "${BASE}/overrides/basic-auth/envfile-ok" --http-port "${OVERRIDES_NGINX_PORT}" --req-header-auth "user:pass" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
 
 # Forbidden locations tests: install.php, update.php and settings.php must
+# URI control character guard: a trailing encoded newline or space redirects
+# to the clean URL, a newline elsewhere in the path is rejected.
+print_title "URI control chars - trailing newline redirects"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-control-chars/expectations-trailing" --env-file "${BASE}/overrides/uri-control-chars/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "URI control chars - trailing newline and space with query string redirects"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-control-chars/expectations-trailing-query" --env-file "${BASE}/overrides/uri-control-chars/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%0A%20?a=1" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "URI control chars - newline inside the path is rejected"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-control-chars/expectations-400" --env-file "${BASE}/overrides/uri-control-chars/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test%0D%0Ax.html" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+# With the guard off the path falls through to the PHP front controller, which
+# has no upstream in the test container (502).
+print_title "URI control chars - guard disabled"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-control-chars/expectations-disabled" --env-file "${BASE}/overrides/uri-control-chars/envfile-disabled" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
 # return the configured forbidden status code (403 here) when ENV is not local.
 print_title "Forbidden locations - /core/install.php"
 "${BASE}/image_verify.sh" --source "${BASE}/overrides/forbidden-locations/expectations-403" --env-file "${BASE}/overrides/forbidden-locations/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path core/install.php --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
