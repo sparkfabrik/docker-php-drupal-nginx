@@ -98,6 +98,7 @@ The entrypoint file contains a list of environment variables that will be replac
 - `NGINX_ACCESS_LOG_FORMAT`: the access log format; the two available options are `main` and `structured`. (default: `structured` if the `ENV` != `loc`, `main` otherwise)
 - `NGINX_DEFAULT_ROOT`: the server root (default: `/var/www/html`)
 - `NGINX_HTTPSREDIRECT`: enable/disable https redirect (default: `0`)
+- `NGINX_URI_NEWLINE_REDIRECT`: redirect (`301`) a request path containing encoded newlines (`%0A`, `%0D`) to the same URL without them, keeping host, port and query string; one redirect per run of newlines (default: `0`)
 - `NGINX_SUBFOLDER`: include nginx configuration files from subfolders (default: `0`)
 - `NGINX_SUBFOLDER_ESCAPED`: (default: `0`)
 - `NGINX_OSB_BUCKET`: needed when using drupal+s3fs, contains the remote bucket url to proxy the asset relative urls
