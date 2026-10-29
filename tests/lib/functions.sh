@@ -38,6 +38,7 @@ set_initial_vars() {
   CORS_ORIGIN_HOST=""
   REQ_HEADER_HOST=""
   REQ_HEADER_AUTH=""
+  REQ_HEADERS=""
 }
 
 parse_args() {
@@ -99,6 +100,10 @@ parse_args() {
       REQ_HEADER_AUTH="${2}"
       shift 2
       ;;
+    --req-header)
+      REQ_HEADERS="${REQ_HEADERS} ${2}"
+      shift 2
+      ;;
     --user | -u)
       TEST_USER="${2}"
       shift 2
@@ -154,6 +159,7 @@ EOM
   printf "%-${PAD}s %s\n" "CORS_ORIGIN_HOST" "${CORS_ORIGIN_HOST}"
   printf "%-${PAD}s %s\n" "REQ_HEADER_HOST" "${REQ_HEADER_HOST}"
   printf "%-${PAD}s %s\n" "REQ_HEADER_AUTH" "${REQ_HEADER_AUTH}"
+  printf "%-${PAD}s %s\n" "REQ_HEADERS" "${REQ_HEADERS}"
 
   if [ -n "${TEST_USER}" ]; then
     printf "%-${PAD}s %s\n" "CONTAINER_USER" "${TEST_USER}"
@@ -206,6 +212,7 @@ Options:
   --cors-origin-host STRING           Defines the origin host used to test CORS
   --req-header-host STRING            Defines the host request header; not used if it is empty
   --req-header-auth STRING            Defines the base64 string used as basic auth request header; not used if it is empty
+  --req-header STRING                 Adds a request header in the httpie form name:value; can be repeated
   --user,-u STRING                    Defines the default user for the image
 EOM
 }
@@ -478,6 +485,9 @@ get_http_test_output() {
   fi
   if [ -n "${REQ_HEADER_HOST}" ]; then
     HTTPIE_REQ_HEADERS="${HTTPIE_REQ_HEADERS} host:${REQ_HEADER_HOST}"
+  fi
+  if [ -n "${REQ_HEADERS}" ]; then
+    HTTPIE_REQ_HEADERS="${HTTPIE_REQ_HEADERS}${REQ_HEADERS}"
   fi
   HTTPIE_ADDITIONAL_OPTIONS=""
   if [ -n "${REQ_HEADER_AUTH}" ]; then

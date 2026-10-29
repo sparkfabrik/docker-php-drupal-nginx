@@ -145,23 +145,44 @@ print_title "Basic Auth Test - No auth configured but request uri is not protect
 print_title "Basic Auth Test - Auth configured"
 "${BASE}/image_verify.sh" --source "${BASE}/overrides/basic-auth/expectations-ok" --env-file "${BASE}/overrides/basic-auth/envfile-ok" --http-port "${OVERRIDES_NGINX_PORT}" --req-header-auth "user:pass" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
 
-# Forbidden locations tests: install.php, update.php and settings.php must
-# URI control character guard: a trailing encoded newline or space redirects
-# to the clean URL, a newline elsewhere in the path is rejected.
-print_title "URI control chars - trailing newline redirects"
-"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-control-chars/expectations-trailing" --env-file "${BASE}/overrides/uri-control-chars/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+# URI control character guard: a trailing run of encoded newlines, carriage
+# returns or tabs redirects to the clean URL, any other encoded control
+# character in the path is rejected.
+print_title "URI control chars - trailing lowercase newline redirects and keeps the port"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-control-chars/expectations-trailing" --env-file "${BASE}/overrides/uri-control-chars/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%0a" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
 
 print_title "URI control chars - trailing newline and space with query string redirects"
 "${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-control-chars/expectations-trailing-query" --env-file "${BASE}/overrides/uri-control-chars/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%0A%20?a=1" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
 
+print_title "URI control chars - X-Forwarded-Proto starting with https redirects to https"
+"${BASE}/image_verify.sh" --req-header "X-Forwarded-Proto:https,http" --source "${BASE}/overrides/uri-control-chars/expectations-trailing-https" --env-file "${BASE}/overrides/uri-control-chars/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
 print_title "URI control chars - newline inside the path is rejected"
 "${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-control-chars/expectations-400" --env-file "${BASE}/overrides/uri-control-chars/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test%0D%0Ax.html" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
 
-# With the guard off the path falls through to the PHP front controller, which
-# has no upstream in the test container (502).
-print_title "URI control chars - guard disabled"
-"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-control-chars/expectations-disabled" --env-file "${BASE}/overrides/uri-control-chars/envfile-disabled" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+print_title "URI control chars - newline inside and at the end of the path is rejected"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-control-chars/expectations-400" --env-file "${BASE}/overrides/uri-control-chars/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "foo%0Abar%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
 
+print_title "URI control chars - trailing NUL byte is rejected"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-control-chars/expectations-400" --env-file "${BASE}/overrides/uri-control-chars/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%00" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "URI control chars - tab inside the path is rejected"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-control-chars/expectations-400" --env-file "${BASE}/overrides/uri-control-chars/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test%09x.html" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "URI control chars - newline in the query string is not touched"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-control-chars/expectations-static" --env-file "${BASE}/overrides/uri-control-chars/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html?q=%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "URI control chars - trailing space alone is not redirected"
+"${BASE}/image_verify.sh" --php-needed --source "${BASE}/overrides/uri-control-chars/expectations-front-controller" --env-file "${BASE}/overrides/uri-control-chars/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%20" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "URI control chars - subfolder mode redirects"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-control-chars/expectations-trailing-subfolder" --env-file "${BASE}/overrides/uri-control-chars/envfile-subfolder" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "sub/test.html%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+# The guard is off by default: the path falls through to the PHP front controller.
+print_title "URI control chars - guard off by default"
+"${BASE}/image_verify.sh" --php-needed --source "${BASE}/overrides/uri-control-chars/expectations-front-controller" --env-file "${BASE}/overrides/uri-control-chars/envfile-disabled" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+# Forbidden locations tests: install.php, update.php and settings.php must
 # return the configured forbidden status code (403 here) when ENV is not local.
 print_title "Forbidden locations - /core/install.php"
 "${BASE}/image_verify.sh" --source "${BASE}/overrides/forbidden-locations/expectations-403" --env-file "${BASE}/overrides/forbidden-locations/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path core/install.php --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
