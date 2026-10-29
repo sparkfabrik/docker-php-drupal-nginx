@@ -9,10 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Opt-in URI control character guard through `NGINX_URI_CONTROL_CHARS_GUARD`:
-  a path ending with encoded newlines, carriage returns or tabs, optionally
-  mixed with spaces, is redirected (`301`) to the same URL without them, and
-  any other encoded control character in the path is answered with `400`.
+- Optional redirect (`301`) of a request path containing encoded newlines
+  (`%0A`, `%0D`) to the same URL without them, keeping host, port and query
+  string, through `NGINX_URI_NEWLINE_REDIRECT` (default `0`).
 - Security response headers (`Referrer-Policy`, `Permissions-Policy`,
   `Cross-Origin-Opener-Policy`, `Cross-Origin-Embedder-Policy` and
   `Cross-Origin-Resource-Policy`) through `NGINX_SECURITY_HEADERS_ENABLE`
