@@ -145,6 +145,40 @@ print_title "Basic Auth Test - No auth configured but request uri is not protect
 print_title "Basic Auth Test - Auth configured"
 "${BASE}/image_verify.sh" --source "${BASE}/overrides/basic-auth/expectations-ok" --env-file "${BASE}/overrides/basic-auth/envfile-ok" --http-port "${OVERRIDES_NGINX_PORT}" --req-header-auth "user:pass" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
 
+# URI newline redirect: encoded newlines in the path are redirected away when
+# enabled, and left alone otherwise.
+print_title "URI newline - trailing lowercase newline keeps the port"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-newline/expectations-redirect" --env-file "${BASE}/overrides/uri-newline/envfile-redirect" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%0a" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "URI newline - trailing CRLF keeps the query string"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-newline/expectations-redirect-query" --env-file "${BASE}/overrides/uri-newline/envfile-redirect" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%0D%0A?a=1" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "URI newline - X-Forwarded-Proto starting with https"
+"${BASE}/image_verify.sh" --req-header "X-Forwarded-Proto:https,http" --source "${BASE}/overrides/uri-newline/expectations-redirect-https" --env-file "${BASE}/overrides/uri-newline/envfile-redirect" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "URI newline - newline inside the path"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-newline/expectations-redirect" --env-file "${BASE}/overrides/uri-newline/envfile-redirect" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "te%0Ast.html" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "URI newline - one run of newlines removed per redirect"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-newline/expectations-redirect-partial" --env-file "${BASE}/overrides/uri-newline/envfile-redirect" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "te%0D%0Ast.html%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "URI newline - newline in the query string is not touched"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-newline/expectations-static" --env-file "${BASE}/overrides/uri-newline/envfile-redirect" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html?q=%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "URI newline - tab is not touched"
+"${BASE}/image_verify.sh" --php-needed --source "${BASE}/overrides/uri-newline/expectations-front-controller" --env-file "${BASE}/overrides/uri-newline/envfile-redirect" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%09" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "URI newline - subfolder mode"
+"${BASE}/image_verify.sh" --source "${BASE}/overrides/uri-newline/expectations-redirect-subfolder" --env-file "${BASE}/overrides/uri-newline/envfile-subfolder" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "sub/test.html%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+# Off by default, and any value other than 1 keeps it off: the path falls
+# through to the PHP front controller.
+print_title "URI newline - off by default"
+"${BASE}/image_verify.sh" --php-needed --source "${BASE}/overrides/uri-newline/expectations-front-controller" --env-file "${BASE}/overrides/uri-newline/envfile-disabled" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
+print_title "URI newline - a value other than 1 keeps the redirect off"
+"${BASE}/image_verify.sh" --php-needed --source "${BASE}/overrides/uri-newline/expectations-front-controller" --env-file "${BASE}/overrides/uri-newline/envfile-invalid" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
 # Forbidden locations tests: install.php, update.php and settings.php must
 # return the configured forbidden status code (403 here) when ENV is not local.
 print_title "Forbidden locations - /core/install.php"

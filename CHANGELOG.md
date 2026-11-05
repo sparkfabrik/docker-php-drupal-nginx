@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional redirect (`301`) of a request path containing encoded newlines
+  (`%0A`, `%0D`) to the same URL without them, keeping host, port and query
+  string, through `NGINX_URI_NEWLINE_REDIRECT` (default `0`).
 - Security response headers (`Referrer-Policy`, `Permissions-Policy`,
   `Cross-Origin-Opener-Policy`, `Cross-Origin-Embedder-Policy` and
   `Cross-Origin-Resource-Policy`) through `NGINX_SECURITY_HEADERS_ENABLE`

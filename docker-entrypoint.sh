@@ -111,6 +111,14 @@ if [ -n "${NGINX_CSP_HEADER}" ]; then
   sed -e '/#cspheader/r /templates/csp.conf' -i /templates/default.conf;
 fi
 
+# Redirect paths with encoded newlines to the same URL without them (default: off).
+export NGINX_URI_NEWLINE_REDIRECT="${NGINX_URI_NEWLINE_REDIRECT:-0}"
+if [ "${NGINX_URI_NEWLINE_REDIRECT}" = "1" ]; then
+  print "Activating URI newline redirect"
+  sed -e '/#urinewline/r /templates/uri-newline-redirect.conf' -i /templates/default.conf;
+  sed -e '/#urinewline/r /templates/uri-newline-redirect.conf' -i /templates/subfolder.conf;
+fi
+
 # If the variable NGINX_DEFAULT_SERVER_NAME is left empty
 # (in this case the default value _ will be used), the default.conf
 # server declaration will be declared as the default catch all server.
