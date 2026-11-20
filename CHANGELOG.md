@@ -67,8 +67,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The default base image is now `1.30.7-alpine-slim`, and it is the only nginx
-  version built. Earlier versions are no longer built.
+- The default base image is now `1.30.7-alpine-slim`. nginx versions older than
+  `1.30.2` are no longer built.
 - Structured logging is configured across all server definitions, and the log
   format includes the `X-Forwarded-For` value.
 - The CI workflow was modernized: GitHub Actions were upgraded, the QEMU
