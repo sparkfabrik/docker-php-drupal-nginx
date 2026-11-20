@@ -15,7 +15,11 @@ env:
     [
       "1.30.7-alpine-slim",
       "1.30.3-alpine-slim",
-      "1.30.2-alpine-slim"
+      "1.30.2-alpine-slim",
+      "1.26.0-alpine-slim",
+      "1.25.5-alpine-slim",
+      "1.25.3-alpine-slim",
+      "1.25.1-alpine-slim"
     ]
   # The version whose images also receive the rolling :d8 / :d8-rootless tags.
   PRIMARY_TAG: "1.30.7-alpine-slim"
