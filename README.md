@@ -6,8 +6,8 @@ specific configuration for Drupal 8.
 ## Supported tags and architectures
 
 Images are published to GHCR for each nginx base version listed in the
-workflow's `NGINX_TAGS` variable, currently `1.30.3-alpine-slim` (the default),
-`1.30.2-alpine-slim`, `1.26.0-alpine-slim`, `1.25.5-alpine-slim`,
+workflow's `NGINX_TAGS` variable, currently `1.30.7-alpine-slim` (the default),
+`1.30.3-alpine-slim`, `1.30.2-alpine-slim`, `1.26.0-alpine-slim`, `1.25.5-alpine-slim`,
 `1.25.3-alpine-slim` and `1.25.1-alpine-slim`. Every tag is built as a multi-arch manifest for
 `linux/amd64` and `linux/arm64`.
 
