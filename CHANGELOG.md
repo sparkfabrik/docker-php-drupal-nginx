@@ -67,8 +67,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The default base image is now `1.30.3-alpine-slim`; nginx versions older than
-  `1.25.1` are no longer built.
+- The default base image is now `1.30.7-alpine-slim`, and it is the only nginx
+  version built. Earlier versions are no longer built.
 - Structured logging is configured across all server definitions, and the log
   format includes the `X-Forwarded-For` value.
 - The CI workflow was modernized: GitHub Actions were upgraded, the QEMU
@@ -94,6 +94,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Updated the nginx base image to `1.30.7-alpine-slim`, which fixes the
+  November 2026 nginx vulnerabilities, including the HTTP/2 flaws
+  CVE-2026-123007 and CVE-2026-123633.
 - Restored a restrictive `.well-known` handling that serves only `.txt` files
   and denies PHP execution, preventing source code leakage.
 
