@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE` defaults to `403` instead of `200`.
+
 ### Added
 
 - Optional redirect (`301`) of a request path containing encoded newlines

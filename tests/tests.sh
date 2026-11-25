@@ -180,7 +180,7 @@ print_title "URI newline - a value other than 1 keeps the redirect off"
 "${BASE}/image_verify.sh" --php-needed --source "${BASE}/overrides/uri-newline/expectations-front-controller" --env-file "${BASE}/overrides/uri-newline/envfile-invalid" --http-port "${OVERRIDES_NGINX_PORT}" --http-path "test.html%0A" --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
 
 # Forbidden locations tests: install.php, update.php and settings.php must
-# return the configured forbidden status code (403 here) when ENV is not local.
+# return the default forbidden status code (403) when ENV is not local.
 print_title "Forbidden locations - /core/install.php"
 "${BASE}/image_verify.sh" --source "${BASE}/overrides/forbidden-locations/expectations-403" --env-file "${BASE}/overrides/forbidden-locations/envfile" --http-port "${OVERRIDES_NGINX_PORT}" --http-path core/install.php --user "${IMAGE_USER}" "${IMAGE_NAME}:${IMAGE_TAG}"
 
