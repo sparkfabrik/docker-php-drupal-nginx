@@ -73,7 +73,7 @@ if [ -n "${NGINX_BASIC_AUTH_USER}" ] && [ -n "${NGINX_BASIC_AUTH_PASS}" ]; then
 fi
 
 # Activate the forbidden locations when the environment is not local
-NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE=${NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE:-"200"}
+NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE=${NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE:-"403"}
 export NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE
 if [ "${ENV:-}" != "loc" ]; then
   print "Activating the forbidden locations"

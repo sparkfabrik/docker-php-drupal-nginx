@@ -131,7 +131,7 @@ The entrypoint file contains a list of environment variables that will be replac
 - `NGINX_LARGE_CLIENT_HEADER_BUFFERS`: the maximum number and size of buffers for large client request headers; raise it when clients send oversized `Cookie` headers and nginx returns `400 Request Header Or Cookie Too Large` (default: `4 8k`)
 - `NGINX_CORS_ENABLED`: enable cors for `/` path and the caller origin header represented by `$http_origin` nginx variable (<https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin>) (default: `0`)
 - `NGINX_CORS_DOMAINS`: a list of CORS enabled domains to activate cors just for the specified ones (no default provided)
-- `NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE`: a valid return code used as return value when the forbidden locations are hitted (default `200`)
+- `NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE`: a valid return code used as return value when the forbidden locations are hitted (default `403`)
 
 ## Features
 
@@ -161,7 +161,7 @@ level: `composer.json`, `composer.lock`, `package.json`, `package-lock.json`,
 `/core/install.php`, `/update.php` and the site settings files
 (`sites/<site>/settings.php` and `sites/<site>/settings.local.php`). The
 response code is configurable through `NGINX_FORBIDDEN_LOCATIONS_EXIT_CODE`
-(default `200`; set it to `403` to actually forbid these paths). The block is
+(default `403`). The block is
 enabled automatically when `ENV` is not `loc`.
 
 ### Object storage (s3fs) assets
